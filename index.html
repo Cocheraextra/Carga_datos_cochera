@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Valet Parking - Control Hotel</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary-red: #ef4444;
+            --primary-red-hover: #dc2626;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 70px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .btn-config {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn-ingreso-hero {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-ingreso-hero:active {
+            transform: scale(0.98);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .photo-slot {
+            aspect-ratio: 1;
+            background-color: var(--bg-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-slot span {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        #cameraModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #000;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        #videoPreview {
+            width: 100%;
+            height: 80%;
+            object-fit: cover;
+        }
+
+        .camera-controls {
+            height: 20%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #0f172a;
+        }
+
+        .btn-capture {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: var(--primary-red);
+        }
+
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            gap: 4px;
+            cursor: pointer;
+            width: 33%;
+        }
+
+        .nav-item.active {
+            color: var(--accent-blue);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .car-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-espera { background-color: #f59e0b; color: #000; }
+        .badge-estacionado { background-color: var(--accent-green); color: #000; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Valet Parking Hotel</h1>
+        <button class="btn-config" onclick="configurarWebhook()">⚙️ Drive API</button>
+    </header>
+
+    <!-- VISTA 1: INGRESO -->
+    <main id="tab-ingreso" class="tab-content active">
+        <button class="btn-ingreso-hero" onclick="abrirCamara('patente')">
+            📷 CARGAR AUTO (Escanear Patente)
+        </button>
+
+        <form id="formIngreso" class="card" onsubmit="guardarVehiculo(event)">
+            <div class="form-group">
+                <label>PATENTE / DOMINIO</label>
+                <input type="text" id="inputPatente" class="form-control" placeholder="ABC 123 / AA 123 CD" required style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+                <label>MARCA / MODELO</label>
+                <input type="text" id="inputModelo" class="form-control" placeholder="Ej: Toyota Corolla gris" required>
+            </div>
+
+            <div class="form-group">
+                <label>BOTONES (Quien lo recibe)</label>
+                <input type="text" id="inputBotones" class="form-control" placeholder="Nombre del botones" required>
+            </div>
+
+            <div class="form-group">
+                <label>CHOFER ASIGNADO (Que lo estaciona)</label>
+                <input type="text" id="inputChofer" class="form-control" placeholder="Nombre del chofer" required>
+            </div>
+
+            <div class="form-group">
+                <label>COCHERA ASIGNADA (Opcional en puerta)</label>
+                <input type="text" id="inputCochera" class="form-control" placeholder="Ej: Subsuelo 1 - Cochera 45">
+            </div>
+
+            <div class="form-group">
+                <label>FOTOS DEL ESTADO DEL AUTO (3 o 4)</label>
+                <div class="photo-grid">
+                    <div class="photo-slot" onclick="abrirCamara('foto1')" id="slot-0"><span>📷 Frente</span></div>
+                    <div class="photo-slot" onclick="abrirCamara('foto2')" id="slot-1"><span>📷 Lateral 1</span></div>
+                    <div class="photo-slot" onclick="abrirCamara('foto3')" id="slot-2"><span>📷 Lateral 2</span></div>
+                    <div class="photo-slot" onclick="abrirCamara('foto4')" id="slot-3"><span>📷 Atrás</span></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnEnviar">🚀 ENVIAR</button>
+        </form>
+    </main>
+
+    <!-- VISTA 2: ASIGNACIÓN DE COCHERA (CHOFER) -->
+    <main id="tab-chofer" class="tab-content">
+        <h2 style="font-size: 1rem; margin-bottom: 15px; color: var(--text-muted);">AUTOS EN TRÁNSITO / PENDIENTES</h2>
+        <div id="listaPendientes">
+            <!-- Carga dinámica -->
+        </div>
+    </main>
+
+    <!-- VISTA 3: BUSCADOR VIGILADOR -->
+    <main id="tab-vigilador" class="tab-content">
+        <div class="card">
+            <div class="form-group" style="margin-bottom:0;">
+                <label>BUSCAR VEHÍCULO</label>
+                <input type="text" id="buscarPatente" class="form-control" placeholder="Escribí patente o cochera..." onkeyup="filtrarAutos()">
+            </div>
+        </div>
+        <div id="listaTodos">
+            <!-- Carga dinámica -->
+        </div>
+    </main>
+
+    <!-- MODAL CÁMARA -->
+    <div id="cameraModal">
+        <video id="videoPreview" autoplay playsinline></video>
+        <div class="camera-controls">
+            <button type="button" style="color:white; background:none; border:none;" onclick="cerrarCamara()">Cancelar</button>
+            <button type="button" class="btn-capture" onclick="capturarFoto()"></button>
+            <div style="width: 50px;"></div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN BOTTOM -->
+    <nav>
+        <button class="nav-item active" onclick="cambiarTab('ingreso', this)">
+            📌 <span>Ingreso</span>
+        </button>
+        <button class="nav-item" onclick="cambiarTab('chofer', this)">
+            🚗 <span>Cochera</span>
+        </button>
+        <button class="nav-item" onclick="cambiarTab('vigilador', this)">
+            🔍 <span>Buscar</span>
+        </button>
+    </nav>
+
+    <script>
+        let fotosCapturadas = [];
+        let targetSlot = null;
+        let streamCamara = null;
+        
+        // URL de tu Google Apps Script configurada por defecto
+        let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbzAoBtKJgtBh45V7RxSb-5f0LrEUiEOKQJf_osXUHqtP7-mDGyPeEqUc6_92XjyOBFT/exec';
+
+        function cambiarTab(tabName, element) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            element.classList.add('active');
+
+            if(tabName === 'chofer') cargarPendientes();
+            if(tabName === 'vigilador') cargarBuscador();
+        }
+
+        function configurarWebhook() {
+            const url = prompt("URL actual de Google Apps Script:", webhookUrl);
+            if (url !== null) {
+                webhookUrl = url.trim();
+                localStorage.setItem('webhook_url', webhookUrl);
+                alert("URL actualizada correctamente.");
+            }
+        }
+
+        async function abrirCamara(destino) {
+            targetSlot = destino;
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('videoPreview');
+
+            try {
+                streamCamara = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                video.srcObject = streamCamara;
+                modal.style.display = 'flex';
+            } catch (err) {
+                alert("No se pudo acceder a la cámara. Revisa los permisos.");
+            }
+        }
+
+        function cerrarCamara() {
+            if (streamCamara) {
+                streamCamara.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('cameraModal').style.display = 'none';
+        }
+
+        function capturarFoto() {
+            const video = document.getElementById('videoPreview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+            if (targetSlot === 'patente') {
+                document.getElementById('inputPatente').value = "ABC-" + Math.floor(100 + Math.random() * 900);
+            } else {
+                const index = parseInt(targetSlot.replace('foto', '')) - 1;
+                fotosCapturadas[index] = dataUrl;
+                const slot = document.getElementById(`slot-${index}`);
+                slot.innerHTML = `<img src="${dataUrl}">`;
+            }
+
+            cerrarCamara();
+        }
+
+        async function guardarVehiculo(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            const cocheraInicial = document.getElementById('inputCochera').value;
+
+            const autoData = {
+                id: Date.now(),
+                patente: document.getElementById('inputPatente').value.toUpperCase(),
+                modelo: document.getElementById('inputModelo').value,
+                botones: document.getElementById('inputBotones').value,
+                chofer: document.getElementById('inputChofer').value,
+                cochera: cocheraInicial,
+                estado: cocheraInicial ? 'Estacionado' : 'En tránsito',
+                fecha: new Date().toLocaleString(),
+                fotos: fotosCapturadas
+            };
+
+            let vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+            vehiculos.push(autoData);
+            localStorage.setItem('vehiculos', JSON.stringify(vehiculos));
+
+            if (webhookUrl) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(autoData)
+                    });
+                } catch(err) {
+                    console.log("Error al subir", err);
+                }
+            }
+
+            alert("¡Vehículo registrado con éxito!");
+            document.getElementById('formIngreso').reset();
+            fotosCapturadas = [];
+            const nombresSlots = ['Frente', 'Lateral 1', 'Lateral 2', 'Atrás'];
+            for(let i=0; i<4; i++) {
+                document.getElementById(`slot-${i}`).innerHTML = `<span>📷 ${nombresSlots[i]}</span>`;
+            }
+            btn.disabled = false;
+            btn.innerText = "🚀 ENVIAR";
+        }
+
+        function cargarPendientes() {
+            const contenedor = document.getElementById('listaPendientes');
+            const vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+            const pendientes = vehiculos.filter(v => v.estado === 'En tránsito');
+
+            if(pendientes.length === 0) {
+                contenedor.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px;">No hay autos pendientes de cochera.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = pendientes.map(v => `
+                <div class="car-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <h3 style="color:var(--accent-blue); font-size:1.3rem;">${v.patente}</h3>
+                        <span class="badge badge-espera">En Tránsito</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-main); font-weight:bold;">${v.modelo}</p>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Chofer a cargo: ${v.chofer}</p>
+                    
+                    <div style="display:flex; gap:10px; margin-top:12px;">
+                        <input type="text" id="cochera-${v.id}" class="form-control" placeholder="Escribir N° de Cochera" style="padding:8px;">
+                        <button onclick="asignarCochera(${v.id})" class="btn-submit" style="width: auto; padding:8px 15px;">Confirmar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function asignarCochera(id) {
+            const numCochera = document.getElementById(`cochera-${id}`).value;
+            if(!numCochera) return alert("Por favor ingresá el número de cochera.");
+
+            let vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+            const index = vehiculos.findIndex(v => v.id === id);
+            if(index !== -1) {
+                vehiculos[index].cochera = numCochera;
+                vehiculos[index].estado = 'Estacionado';
+                localStorage.setItem('vehiculos', JSON.stringify(vehiculos));
+                cargarPendientes();
+                alert("¡Cochera asignada correctamente!");
+            }
+        }
+
+        function cargarBuscador() {
+            filtrarAutos();
+        }
+
+        function filtrarAutos() {
+            const query = document.getElementById('buscarPatente').value.toUpperCase();
+            const contenedor = document.getElementById('listaTodos');
+            const vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+
+            const filtrados = vehiculos.filter(v => 
+                v.patente.includes(query) || (v.cochera && v.cochera.toUpperCase().includes(query)) || v.modelo.toUpperCase().includes(query)
+            );
+
+            contenedor.innerHTML = filtrados.map(v => `
+                <div class="car-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <h3 style="color:var(--text-main);">${v.patente}</h3>
+                        <span class="badge ${v.estado === 'En tránsito' ? 'badge-espera' : 'badge-estacionado'}">${v.estado}</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-main);">${v.modelo}</p>
+                    <p style="font-size:0.9rem; font-weight:bold; color:var(--accent-green); margin:5px 0;">
+                        📍 COCHERA: ${v.cochera || 'Sin asignar'}
+                    </p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Ingreso: ${v.fecha}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Botones: ${v.botones} | Chofer: ${v.chofer}</p>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
