@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Valet Parking - Control Hotel</title>
-    <!-- Librería OCR para leer patentes automáticamente -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -13,6 +11,7 @@
             --primary-red: #ef4444;
             --accent-blue: #3b82f6;
             --accent-green: #22c55e;
+            --accent-amber: #f59e0b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
@@ -28,12 +27,12 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding-bottom: 70px;
+            padding-bottom: 80px;
         }
 
         header {
             background-color: var(--card-bg);
-            padding: 15px 20px;
+            padding: 14px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -43,18 +42,15 @@
             z-index: 100;
         }
 
-        header h1 {
-            font-size: 1.1rem;
-            color: var(--text-main);
-        }
+        header h1 { font-size: 1.05rem; }
 
         .btn-config {
             background: transparent;
             border: 1px solid var(--border-color);
             color: var(--text-muted);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
         }
 
@@ -65,46 +61,37 @@
             margin: 0 auto;
         }
 
-        .tab-content.active {
-            display: block;
-        }
-
-        .btn-ingreso-hero {
-            width: 100%;
-            background: linear-gradient(135deg, var(--primary-red), #b91c1c);
-            color: white;
-            border: none;
-            padding: 20px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
+        .tab-content.active { display: block; }
 
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
 
-        .form-group {
+        .live-clock {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-align: center;
             margin-bottom: 15px;
+            font-weight: 600;
         }
+
+        .form-group { margin-bottom: 14px; }
 
         .form-group label {
             display: block;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             margin-bottom: 6px;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
         .form-control {
@@ -117,11 +104,17 @@
             font-size: 1rem;
         }
 
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Grilla de 6 fotos (3x2) */
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .photo-slot {
@@ -135,6 +128,7 @@
             justify-content: center;
             cursor: pointer;
             overflow: hidden;
+            position: relative;
         }
 
         .photo-slot img {
@@ -144,11 +138,99 @@
         }
 
         .photo-slot span {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
             text-align: center;
+            padding: 4px;
         }
 
+        .btn-submit {
+            width: 100%;
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .btn-confirm {
+            background-color: var(--accent-green);
+            color: #052e16;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn-salida {
+            width: 100%;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid var(--primary-red);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Mapa de Cocheras */
+        .cocheras-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .cochera-box {
+            padding: 8px 4px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .cochera-libre {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .cochera-ocupada {
+            background-color: rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+            border-color: var(--primary-red);
+            cursor: not-allowed;
+        }
+
+        .car-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: bold;
+        }
+
+        .badge-pendiente { background-color: var(--accent-amber); color: #000; }
+        .badge-estacionado { background-color: var(--accent-green); color: #000; }
+
+        /* Cámara Modal */
         #cameraModal {
             display: none;
             position: fixed;
@@ -180,17 +262,7 @@
             background: var(--primary-red);
         }
 
-        #ocrStatus {
-            display: none;
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--accent-blue);
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
+        /* Navegación Inferior */
         nav {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -213,137 +285,140 @@
             gap: 4px;
             cursor: pointer;
             width: 33%;
+            position: relative;
         }
 
-        .nav-item.active { color: var(--accent-blue); }
+        .nav-item.active { color: var(--accent-blue); font-weight: bold; }
 
-        .btn-submit {
-            width: 100%;
-            background-color: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
+        .notif-dot {
+            position: absolute;
+            top: -2px;
+            right: 28%;
+            background: var(--accent-amber);
+            color: #000;
+            font-size: 0.65rem;
             font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
+            padding: 1px 5px;
+            border-radius: 10px;
         }
-
-        .car-item {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .badge-espera { background-color: #f59e0b; color: #000; }
-        .badge-estacionado { background-color: var(--accent-green); color: #000; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Valet Parking Hotel</h1>
-        <button class="btn-config" onclick="configurarWebhook()">⚙️ Drive API</button>
+        <h1>🏨 Valet Parking</h1>
+        <button class="btn-config" onclick="configurarWebhook()">⚙️ API Sheet</button>
     </header>
 
-    <!-- VISTA 1: INGRESO -->
+    <!-- PESTAÑA 1: INGRESO RÁPIDO (VIGILADOR) -->
     <main id="tab-ingreso" class="tab-content active">
-        <button class="btn-ingreso-hero" onclick="abrirCamara('patente')">
-            📷 ESCANEAR PATENTE CON CÁMARA
-        </button>
+        <div class="live-clock" id="relojVivo">Cargando fecha y hora...</div>
 
-        <div id="ocrStatus">🔍 Leyendo patente de la imagen...</div>
-
-        <form id="formIngreso" class="card" onsubmit="guardarVehiculo(event)">
+        <form id="formIngreso" class="card" onsubmit="pasarAPendientes(event)">
             <div class="form-group">
-                <label>PATENTE / DOMINIO</label>
-                <input type="text" id="inputPatente" class="form-control" placeholder="ABC 123 / AA 123 CD" required style="text-transform: uppercase;">
-            </div>
-
-            <div class="form-group">
-                <label>MARCA / MODELO</label>
-                <input type="text" id="inputModelo" class="form-control" placeholder="Ej: Toyota Corolla gris" required>
-            </div>
-
-            <div class="form-group">
-                <label>BOTONES (Quien lo recibe)</label>
-                <input type="text" id="inputBotones" class="form-control" placeholder="Nombre del botones" required>
-            </div>
-
-            <div class="form-group">
-                <label>CHOFER ASIGNADO (Que lo estaciona)</label>
-                <input type="text" id="inputChofer" class="form-control" placeholder="Nombre del chofer" required>
-            </div>
-
-            <div class="form-group">
-                <label>COCHERA ASIGNADA (Opcional en puerta)</label>
-                <input type="text" id="inputCochera" class="form-control" placeholder="Ej: Subsuelo 1 - Cochera 45">
-            </div>
-
-            <div class="form-group">
-                <label>FOTOS DEL ESTADO DEL AUTO (3 o 4)</label>
+                <label>1. FOTOS DEL VEHÍCULO (Hasta 6)</label>
                 <div class="photo-grid">
-                    <div class="photo-slot" onclick="abrirCamara('foto1')" id="slot-0"><span>📷 Frente</span></div>
-                    <div class="photo-slot" onclick="abrirCamara('foto2')" id="slot-1"><span>📷 Lateral 1</span></div>
-                    <div class="photo-slot" onclick="abrirCamara('foto3')" id="slot-2"><span>📷 Lateral 2</span></div>
-                    <div class="photo-slot" onclick="abrirCamara('foto4')" id="slot-3"><span>📷 Atrás</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(0)" id="slot-0"><span>📷 Foto 1<br>Frente</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(1)" id="slot-1"><span>📷 Foto 2<br>Lat. Izq</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(2)" id="slot-2"><span>📷 Foto 3<br>Lat. Der</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(3)" id="slot-3"><span>📷 Foto 4<br>Atrás</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(4)" id="slot-4"><span>📷 Foto 5<br>Detalle</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(5)" id="slot-5"><span>📷 Foto 6<br>Detalle</span></div>
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit" id="btnEnviar">🚀 ENVIAR</button>
+            <div class="form-group">
+                <label>2. PATENTE</label>
+                <input type="text" id="inputPatente" class="form-control" placeholder="Ej: AB 123 CD" required style="text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
+            </div>
+
+            <div class="form-group">
+                <label>3. COLOR Y MARCA / MODELO</label>
+                <input type="text" id="inputVehiculo" class="form-control" placeholder="Ej: Gris - Toyota Corolla" required>
+            </div>
+
+            <div class="form-group">
+                <label>4. QUIÉN CONDUCE (Valet Parking)</label>
+                <input type="text" id="inputChofer" class="form-control" placeholder="Apellido y Nombre" required>
+            </div>
+
+            <button type="submit" class="btn-submit">⏳ ENVIAR A PENDIENTES</button>
         </form>
     </main>
 
-    <!-- VISTA 2: ASIGNACIÓN DE COCHERA -->
-    <main id="tab-chofer" class="tab-content">
-        <h2 style="font-size: 1rem; margin-bottom: 15px; color: var(--text-muted);">AUTOS EN TRÁNSITO / PENDIENTES</h2>
+    <!-- PESTAÑA 2: PENDIENTES Y ASIGNACIÓN DE COCHERA -->
+    <main id="tab-pendientes" class="tab-content">
+        <h2 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--accent-amber);">AUTOS EN MOVIMIENTO (Esperando Cochera)</h2>
         <div id="listaPendientes"></div>
+
+        <div class="card" style="margin-top: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.8rem; font-weight:bold; color:var(--text-muted);">ESTADO DE COCHERAS</label>
+                <button type="button" onclick="cambiarTotalCocheras()" style="background:none; border:none; color:var(--accent-blue); font-size:0.75rem; cursor:pointer;">Editar cantidad</button>
+            </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Verde: Libre | Rojo: Ocupada (Tocá una libre para copiar el N°)</p>
+            <div class="cocheras-grid" id="mapaCocheras"></div>
+        </div>
     </main>
 
-    <!-- VISTA 3: BUSCADOR VIGILADOR -->
-    <main id="tab-vigilador" class="tab-content">
+    <!-- PESTAÑA 3: ADENTRO / BUSCADOR Y SALIDA -->
+    <main id="tab-adentro" class="tab-content">
         <div class="card">
             <div class="form-group" style="margin-bottom:0;">
-                <label>BUSCAR VEHÍCULO</label>
-                <input type="text" id="buscarPatente" class="form-control" placeholder="Escribí patente o cochera..." onkeyup="filtrarAutos()">
+                <label>🔍 BUSCAR AUTO ADENTRO</label>
+                <input type="text" id="buscarInput" class="form-control" placeholder="Buscar por patente, cochera o modelo..." onkeyup="renderizarAdentro()">
             </div>
         </div>
-        <div id="listaTodos"></div>
+        <div id="listaAdentro"></div>
     </main>
 
     <!-- MODAL CÁMARA -->
     <div id="cameraModal">
         <video id="videoPreview" autoplay playsinline></video>
         <div class="camera-controls">
-            <button type="button" style="color:white; background:none; border:none;" onclick="cerrarCamara()">Cancelar</button>
+            <button type="button" style="color:white; background:none; border:none; font-size:1rem;" onclick="cerrarCamara()">Cancelar</button>
             <button type="button" class="btn-capture" onclick="capturarFoto()"></button>
-            <div style="width: 50px;"></div>
+            <div style="width: 60px;"></div>
         </div>
     </div>
 
-    <!-- NAVEGACIÓN BOTTOM -->
+    <!-- NAVEGACIÓN INFERIOR -->
     <nav>
-        <button class="nav-item active" onclick="cambiarTab('ingreso', this)">📌 <span>Ingreso</span></button>
-        <button class="nav-item" onclick="cambiarTab('chofer', this)">🚗 <span>Cochera</span></button>
-        <button class="nav-item" onclick="cambiarTab('vigilador', this)">🔍 <span>Buscar</span></button>
+        <button class="nav-item active" onclick="cambiarTab('ingreso', this)">
+            ➕ <span>Ingreso</span>
+        </button>
+        <button class="nav-item" onclick="cambiarTab('pendientes', this)">
+            ⏳ <span>Pendientes</span>
+            <span class="notif-dot" id="badgePendientes" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" onclick="cambiarTab('adentro', this)">
+            🚘 <span>Adentro / Salida</span>
+        </button>
     </nav>
 
     <script>
-        let fotosCapturadas = [];
-        let targetSlot = null;
+        let fotosCapturadas = [null, null, null, null, null, null];
+        let slotActual = null;
         let streamCamara = null;
-        
         let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbzAoBtKJgtBh45V7RxSb-5f0LrEUiEOKQJf_osXUHqtP7-mDGyPeEqUc6_92XjyOBFT/exec';
+        let totalCocheras = parseInt(localStorage.getItem('total_cocheras')) || 30;
+
+        // Reloj en tiempo real
+        setInterval(() => {
+            const ahora = new Date();
+            document.getElementById('relojVivo').innerText = `📅 ${ahora.toLocaleDateString('es-AR')}  |  🕒 ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
+        }, 1000);
+
+        function actualizarContadorPendientes() {
+            const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
+            const badge = document.getElementById('badgePendientes');
+            if (pendientes.length > 0) {
+                badge.style.display = 'inline-block';
+                badge.innerText = pendientes.length;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
 
         function cambiarTab(tabName, element) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -351,21 +426,36 @@
             document.getElementById(`tab-${tabName}`).classList.add('active');
             element.classList.add('active');
 
-            if(tabName === 'chofer') cargarPendientes();
-            if(tabName === 'vigilador') cargarBuscador();
-        }
-
-        function configurarWebhook() {
-            const url = prompt("URL actual de Google Apps Script:", webhookUrl);
-            if (url !== null) {
-                webhookUrl = url.trim();
-                localStorage.setItem('webhook_url', webhookUrl);
-                alert("URL actualizada correctamente.");
+            if (tabName === 'pendientes') {
+                renderizarPendientes();
+                renderizarMapaCocheras();
+            }
+            if (tabName === 'adentro') {
+                renderizarAdentro();
             }
         }
 
-        async function abrirCamara(destino) {
-            targetSlot = destino;
+        function configurarWebhook() {
+            const url = prompt("Pegá la URL de tu Google Apps Script:", webhookUrl);
+            if (url !== null) {
+                webhookUrl = url.trim();
+                localStorage.setItem('webhook_url', webhookUrl);
+                alert("URL guardada.");
+            }
+        }
+
+        function cambiarTotalCocheras() {
+            const num = prompt("¿Cuántas cocheras tiene el hotel en total?", totalCocheras);
+            if (num && !isNaN(num)) {
+                totalCocheras = parseInt(num);
+                localStorage.setItem('total_cocheras', totalCocheras);
+                renderizarMapaCocheras();
+            }
+        }
+
+        // CÁMARA
+        async function abrirCamara(index) {
+            slotActual = index;
             const modal = document.getElementById('cameraModal');
             const video = document.getElementById('videoPreview');
 
@@ -376,176 +466,237 @@
                 video.srcObject = streamCamara;
                 modal.style.display = 'flex';
             } catch (err) {
-                alert("No se pudo acceder a la cámara. Revisa los permisos.");
+                alert("No se pudo abrir la cámara. Verificá los permisos del navegador.");
             }
         }
 
         function cerrarCamara() {
-            if (streamCamara) {
-                streamCamara.getTracks().forEach(track => track.stop());
-            }
+            if (streamCamara) streamCamara.getTracks().forEach(t => t.stop());
             document.getElementById('cameraModal').style.display = 'none';
         }
 
-        async function capturarFoto() {
+        function capturarFoto() {
             const video = document.getElementById('videoPreview');
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
+            // Redimensionar ligeramente para que 6 fotos suban rápido al Drive sin trabarse
+            const maxWidth = 800;
+            const scale = maxWidth / video.videoWidth;
+            canvas.width = maxWidth;
+            canvas.height = video.videoHeight * scale;
             
-            // Comprimir la imagen para acelerar la subida al Sheet
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+            fotosCapturadas[slotActual] = dataUrl;
+            document.getElementById(`slot-${slotActual}`).innerHTML = `<img src="${dataUrl}">`;
+            cerrarCamara();
+        }
 
-            if (targetSlot === 'patente') {
-                cerrarCamara();
-                const statusDiv = document.getElementById('ocrStatus');
-                statusDiv.style.display = 'block';
-                statusDiv.innerText = "⏳ Procesando imagen para leer patente...";
+        // PASO 1: GUARDAR EN PENDIENTES (LIBERA LA PANTALLA PARA EL SIGUIENTE AUTO)
+        function pasarAPendientes(e) {
+            e.preventDefault();
+            const ahora = new Date();
 
-                try {
-                    // Procesar la imagen con Tesseract OCR
-                    const result = await Tesseract.recognize(dataUrl, 'eng');
-                    // Filtrar solo letras y números
-                    let textoLimpio = result.data.text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            const nuevoAuto = {
+                id: Date.now(),
+                fechaIngreso: ahora.toLocaleDateString('es-AR'),
+                horaIngreso: ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
+                patente: document.getElementById('inputPatente').value.toUpperCase().trim(),
+                vehiculo: document.getElementById('inputVehiculo').value.trim(),
+                chofer: document.getElementById('inputChofer').value.trim(),
+                fotos: fotosCapturadas.filter(f => f !== null)
+            };
+
+            let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
+            pendientes.push(nuevoAuto);
+            localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
+
+            // Resetear formulario al instante para recibir otro auto
+            document.getElementById('formIngreso').reset();
+            fotosCapturadas = [null, null, null, null, null, null];
+            const labels = ['Foto 1<br>Frente', 'Foto 2<br>Lat. Izq', 'Foto 3<br>Lat. Der', 'Foto 4<br>Atrás', 'Foto 5<br>Detalle', 'Foto 6<br>Detalle'];
+            for (let i = 0; i < 6; i++) {
+                document.getElementById(`slot-${i}`).innerHTML = `<span>📷 ${labels[i]}</span>`;
+            }
+
+            actualizarContadorPendientes();
+            alert(`✅ Auto ${nuevoAuto.patente} pasado a PENDIENTES. Ya podés cargar otro.`);
+        }
+
+        // PASO 2: PENDIENTES Y CONFIRMACIÓN DE COCHERA -> ENVÍA AL GOOGLE SHEET
+        function renderizarPendientes() {
+            const contenedor = document.getElementById('listaPendientes');
+            const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
+
+            if (pendientes.length === 0) {
+                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay autos esperando cochera en este momento.</div>';
+                return;
+            }
+
+            contenedor.innerHTML = pendientes.map(auto => `
+                <div class="car-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <h3 style="color:var(--accent-blue); font-size:1.3rem;">${auto.patente}</h3>
+                        <span class="badge badge-pendiente">⏳ En movimiento (${auto.horaIngreso})</span>
+                    </div>
+                    <p style="font-size:0.9rem; font-weight:bold;">${auto.vehiculo}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Chofer: ${auto.chofer} | Fotos: ${auto.fotos.length}</p>
                     
-                    if (textoLimpio.length > 3) {
-                        document.getElementById('inputPatente').value = textoLimpio;
-                        statusDiv.innerText = "✅ Patente detectada: " + textoLimpio;
-                    } else {
-                        statusDiv.innerText = "⚠️ No se leyó bien. Ingresala manualmente o reintenta.";
-                    }
-                } catch(e) {
-                    statusDiv.innerText = "Error al leer patente. Ingresala manualmente.";
-                }
-            } else {
-                const index = parseInt(targetSlot.replace('foto', '')) - 1;
-                fotosCapturadas[index] = dataUrl;
-                const slot = document.getElementById(`slot-${index}`);
-                slot.innerHTML = `<img src="${dataUrl}">`;
-                cerrarCamara();
+                    <div style="display:flex; gap:8px; margin-top:12px;">
+                        <input type="text" id="input-cochera-${auto.id}" class="form-control" placeholder="N° Cochera" style="padding:10px;">
+                        <button type="button" id="btn-conf-${auto.id}" onclick="confirmarCochera(${auto.id})" class="btn-confirm">Confirmar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function seleccionarCocheraMapa(numero) {
+            const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
+            if (pendientes.length > 0) {
+                // Completa automáticamente el input del primer auto pendiente
+                const primerInput = document.getElementById(`input-cochera-${pendientes[0].id}`);
+                if (primerInput) primerInput.value = numero;
             }
         }
 
-        async function guardarVehiculo(e) {
-            e.preventDefault();
+        function renderizarMapaCocheras() {
+            const mapa = document.getElementById('mapaCocheras');
+            const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
+            const ocupadas = adentro.map(a => a.cochera.toString().toUpperCase());
 
-            const btn = document.getElementById('btnEnviar');
+            let html = '';
+            for (let i = 1; i <= totalCocheras; i++) {
+                const estaOcupada = ocupadas.includes(i.toString());
+                if (estaOcupada) {
+                    html += `<div class="cochera-box cochera-ocupada" title="Ocupada">${i}</div>`;
+                } else {
+                    html += `<div class="cochera-box cochera-libre" onclick="seleccionarCocheraMapa('${i}')">${i}</div>`;
+                }
+            }
+            mapa.innerHTML = html;
+        }
+
+        async function confirmarCochera(id) {
+            const input = document.getElementById(`input-cochera-${id}`);
+            const cochera = input.value.trim().toUpperCase();
+            if (!cochera) return alert("Escribí o seleccioná el número de cochera.");
+
+            const btn = document.getElementById(`btn-conf-${id}`);
             btn.disabled = true;
-            btn.innerText = "Guardando...";
+            btn.innerText = "Enviando...";
 
-            const cocheraInicial = document.getElementById('inputCochera').value;
+            let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
+            const index = pendientes.findIndex(a => a.id === id);
+            if (index === -1) return;
 
-            const autoData = {
-                id: Date.now(),
-                patente: document.getElementById('inputPatente').value.toUpperCase(),
-                modelo: document.getElementById('inputModelo').value,
-                botones: document.getElementById('inputBotones').value,
-                chofer: document.getElementById('inputChofer').value,
-                cochera: cocheraInicial,
-                estado: cocheraInicial ? 'Estacionado' : 'En tránsito',
-                fecha: new Date().toLocaleString(),
-                fotos: fotosCapturadas
-            };
+            const autoConfirmado = pendientes[index];
+            autoConfirmado.cochera = cochera;
+            autoConfirmado.accion = "ingreso";
 
-            let vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
-            vehiculos.push(autoData);
-            localStorage.setItem('vehiculos', JSON.stringify(vehiculos));
-
+            // 1. Mandar datos + fotos al Google Sheet
             if (webhookUrl) {
                 try {
                     await fetch(webhookUrl, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(autoData)
+                        body: JSON.stringify(autoConfirmado)
                     });
-                } catch(err) {
-                    console.log("Error al subir", err);
+                } catch (err) {
+                    console.error("Error al enviar a Sheet:", err);
                 }
             }
 
-            alert("¡Vehículo registrado con éxito!");
-            document.getElementById('formIngreso').reset();
-            document.getElementById('ocrStatus').style.display = 'none';
-            fotosCapturadas = [];
-            const nombresSlots = ['Frente', 'Lateral 1', 'Lateral 2', 'Atrás'];
-            for(let i=0; i<4; i++) {
-                document.getElementById(`slot-${i}`).innerHTML = `<span>📷 ${nombresSlots[i]}</span>`;
-            }
-            btn.disabled = false;
-            btn.innerText = "🚀 ENVIAR";
+            // 2. Mover de Pendientes a Adentro (sin guardar las fotos pesadas en el localStorage de adentro para no llenar la memoria)
+            pendientes.splice(index, 1);
+            localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
+
+            let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
+            const resumenAuto = { ...autoConfirmado, fotos: [] }; // Las fotos ya están a salvo en Drive
+            adentro.unshift(resumenAuto);
+            localStorage.setItem('autos_adentro', JSON.stringify(adentro));
+
+            actualizarContadorPendientes();
+            renderizarPendientes();
+            renderizarMapaCocheras();
+            alert(`🚀 Cochera ${cochera} confirmada y subida a Google Sheets.`);
         }
 
-        function cargarPendientes() {
-            const contenedor = document.getElementById('listaPendientes');
-            const vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
-            const pendientes = vehiculos.filter(v => v.estado === 'En tránsito');
+        // PASO 3: AUTOS ADENTRO, BUSCADOR Y SALIDA (LIBERA COCHERA)
+        function renderizarAdentro() {
+            const query = document.getElementById('buscarInput').value.toUpperCase().trim();
+            const contenedor = document.getElementById('listaAdentro');
+            const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
 
-            if(pendientes.length === 0) {
-                contenedor.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px;">No hay autos pendientes de cochera.</p>';
+            const filtrados = adentro.filter(a => 
+                a.patente.includes(query) || 
+                a.cochera.includes(query) || 
+                a.vehiculo.toUpperCase().includes(query)
+            );
+
+            if (filtrados.length === 0) {
+                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No se encontraron vehículos estacionados.</div>';
                 return;
             }
 
-            contenedor.innerHTML = pendientes.map(v => `
+            contenedor.innerHTML = filtrados.map(auto => `
                 <div class="car-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                        <h3 style="color:var(--accent-blue); font-size:1.3rem;">${v.patente}</h3>
-                        <span class="badge badge-espera">En Tránsito</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <h3 style="font-size:1.3rem;">${auto.patente}</h3>
+                        <span class="badge badge-estacionado">📍 COCHERA ${auto.cochera}</span>
                     </div>
-                    <p style="font-size:0.9rem; color:var(--text-main); font-weight:bold;">${v.modelo}</p>
-                    <p style="font-size:0.85rem; color:var(--text-muted);">Chofer a cargo: ${v.chofer}</p>
+                    <p style="font-size:0.95rem; font-weight:bold; color:var(--text-main);">${auto.vehiculo}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Entró: ${auto.fechaIngreso} a las ${auto.horaIngreso}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Estacionó: ${auto.chofer}</p>
                     
-                    <div style="display:flex; gap:10px; margin-top:12px;">
-                        <input type="text" id="cochera-${v.id}" class="form-control" placeholder="Escribir N° de Cochera" style="padding:8px;">
-                        <button onclick="asignarCochera(${v.id})" class="btn-submit" style="width: auto; padding:8px 15px;">Confirmar</button>
-                    </div>
+                    <button type="button" onclick="darDeBaja(${auto.id})" class="btn-salida">🚗 Registrar Salida / Liberar Cochera</button>
                 </div>
             `).join('');
         }
 
-        function asignarCochera(id) {
-            const numCochera = document.getElementById(`cochera-${id}`).value;
-            if(!numCochera) return alert("Por favor ingresá el número de cochera.");
+        async function darDeBaja(id) {
+            let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
+            const index = adentro.findIndex(a => a.id === id);
+            if (index === -1) return;
 
-            let vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
-            const index = vehiculos.findIndex(v => v.id === id);
-            if(index !== -1) {
-                vehiculos[index].cochera = numCochera;
-                vehiculos[index].estado = 'Estacionado';
-                localStorage.setItem('vehiculos', JSON.stringify(vehiculos));
-                cargarPendientes();
-                alert("¡Cochera asignada correctamente!");
+            const auto = adentro[index];
+            const retiradoPor = prompt(`Salida del vehículo ${auto.patente} (Cochera ${auto.cochera}).\n¿Quién lo retira? (Huésped / Chofer):`);
+            
+            if (!retiradoPor || retiradoPor.trim() === "") return;
+
+            const ahora = new Date();
+            const fechaSalida = `${ahora.toLocaleDateString('es-AR')} ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}`;
+
+            // Avisar al Google Sheet para que marque la salida en la fila correspondiente
+            if (webhookUrl) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            accion: "salida",
+                            id: auto.id,
+                            fechaSalida: fechaSalida,
+                            retiradoPor: retiradoPor.trim()
+                        })
+                    });
+                } catch (err) {
+                    console.error("Error al registrar salida en Sheet:", err);
+                }
             }
+
+            // Quitar de Adentro (esto libera automáticamente la cochera en el mapa)
+            adentro.splice(index, 1);
+            localStorage.setItem('autos_adentro', JSON.stringify(adentro));
+
+            renderizarAdentro();
+            alert(`✅ Salida registrada. La cochera ${auto.cochera} volvió a quedar LIBRE.`);
         }
 
-        function cargarBuscador() { filtrarAutos(); }
-
-        function filtrarAutos() {
-            const query = document.getElementById('buscarPatente').value.toUpperCase();
-            const contenedor = document.getElementById('listaTodos');
-            const vehiculos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
-
-            const filtrados = vehiculos.filter(v => 
-                v.patente.includes(query) || (v.cochera && v.cochera.toUpperCase().includes(query)) || v.modelo.toUpperCase().includes(query)
-            );
-
-            contenedor.innerHTML = filtrados.map(v => `
-                <div class="car-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                        <h3 style="color:var(--text-main);">${v.patente}</h3>
-                        <span class="badge ${v.estado === 'En tránsito' ? 'badge-espera' : 'badge-estacionado'}">${v.estado}</span>
-                    </div>
-                    <p style="font-size:0.9rem; color:var(--text-main);">${v.modelo}</p>
-                    <p style="font-size:0.9rem; font-weight:bold; color:var(--accent-green); margin:5px 0;">
-                        📍 COCHERA: ${v.cochera || 'Sin asignar'}
-                    </p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">Ingreso: ${v.fecha}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">Botones: ${v.botones} | Chofer: ${v.chofer}</p>
-                </div>
-            `).join('');
-        }
+        // Inicializar contador al abrir
+        actualizarContadorPendientes();
     </script>
 </body>
 </html>
