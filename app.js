@@ -6,7 +6,7 @@ let fotosCapturadas = [null, null, null, null, null, null];
 let slotActual = null;
 let streamCamara = null;
 
-let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbzAoBtKJgtBh45V7RxSb-5f0LrEUiEOKQJf_osXUHqtP7-mDGyPeEqUc6_92XjyOBFT/exec';
+let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbyJgHDh2FRu0PuIjNqfXX8yzPhRk5JRI1vTRajfg8oEmZPUrvMK9fziyTgBsU4Wv59f/exec';
 
 // Mapa de cocheras
 const colA = ['A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1'];
