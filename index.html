@@ -3,392 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valet Parking - Control Cochera</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --primary-red: #ef4444;
-            --accent-blue: #3b82f6;
-            --accent-green: #22c55e;
-            --accent-amber: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding-bottom: 80px;
-        }
-
-        header {
-            background-color: var(--card-bg);
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        header h1 { font-size: 1.05rem; }
-
-        .btn-config {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 15px;
-            max-width: 750px;
-            margin: 0 auto;
-        }
-
-        .tab-content.active { display: block; }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .live-clock {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: #93c5fd;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-align: center;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .form-group { margin-bottom: 14px; }
-
-        .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 1rem;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .photo-slot {
-            aspect-ratio: 1;
-            background-color: var(--bg-color);
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
-        }
-
-        .photo-slot img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-slot span {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            text-align: center;
-            padding: 4px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background-color: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        .btn-confirm {
-            background-color: var(--accent-green);
-            color: #052e16;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .btn-salida {
-            width: 100%;
-            background-color: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            border: 1px solid var(--primary-red);
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .plano-wrapper {
-            overflow-x: auto;
-            padding-bottom: 8px;
-            margin-top: 10px;
-        }
-
-        .plano-layout {
-            display: flex;
-            gap: 16px;
-            min-width: 600px;
-        }
-
-        .col-a {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            width: 56px;
-            flex-shrink: 0;
-        }
-
-        .bloque-central {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex: 1;
-            gap: 24px;
-        }
-
-        .grupo-filas {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .fila-cocheras {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 4px;
-        }
-
-        .cochera-box {
-            padding: 10px 2px;
-            text-align: center;
-            border-radius: 5px;
-            font-size: 0.78rem;
-            font-weight: bold;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .cochera-libre {
-            background-color: rgba(34, 197, 94, 0.18);
-            color: #86efac;
-            border-color: rgba(34, 197, 94, 0.45);
-        }
-
-        .cochera-ocupada {
-            background-color: rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            border-color: var(--primary-red);
-            cursor: not-allowed;
-        }
-
-        .car-item {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 12px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: bold;
-        }
-
-        .badge-pendiente { background-color: var(--accent-amber); color: #000; }
-        .badge-estacionado { background-color: var(--accent-green); color: #000; }
-
-        #cameraModal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #000;
-            z-index: 1000;
-            flex-direction: column;
-        }
-
-        #videoPreview {
-            width: 100%;
-            height: 80%;
-            object-fit: cover;
-        }
-
-        .camera-controls {
-            height: 20%;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background: #0f172a;
-        }
-
-        .btn-capture {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            border: 4px solid white;
-            background: var(--primary-red);
-        }
-
-        nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            z-index: 100;
-        }
-
-        .nav-item {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.75rem;
-            gap: 4px;
-            cursor: pointer;
-            width: 33%;
-            position: relative;
-        }
-
-        .nav-item.active { color: var(--accent-blue); font-weight: bold; }
-
-        .notif-dot {
-            position: absolute;
-            top: -2px;
-            right: 28%;
-            background: var(--accent-amber);
-            color: #000;
-            font-size: 0.65rem;
-            font-weight: bold;
-            padding: 1px 5px;
-            border-radius: 10px;
-        }
-    </style>
+    <title>Valet Parking - Control Hotel</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
         <h1>🏨 Valet Parking Hotel</h1>
-        <button class="btn-config" onclick="configurarWebhook()">⚙️ API Sheet</button>
+        <div class="header-btns">
+            <button class="btn-reset" onclick="reiniciarApp()">🧹 Limpiar</button>
+            <button class="btn-config" onclick="configurarWebhook()">⚙️ API</button>
+        </div>
     </header>
 
     <!-- PESTAÑA 1: INGRESO -->
     <main id="tab-ingreso" class="tab-content active">
         <div class="live-clock" id="relojVivo">Cargando fecha y hora...</div>
 
-        <form id="formIngreso" class="card" onsubmit="pasarAPendientes(event)">
+        <form id="formIngreso" class="card" onsubmit="guardarIngreso(event)">
             <div class="form-group">
                 <label>1. FOTOS DEL ESTADO (Hasta 6)</label>
                 <div class="photo-grid">
-                    <div class="photo-slot" onclick="abrirCamara(0)" id="slot-0"><span>📷 Foto 1<br>Frente</span></div>
-                    <div class="photo-slot" onclick="abrirCamara(1)" id="slot-1"><span>📷 Foto 2<br>Lat. Izq</span></div>
-                    <div class="photo-slot" onclick="abrirCamara(2)" id="slot-2"><span>📷 Foto 3<br>Lat. Der</span></div>
-                    <div class="photo-slot" onclick="abrirCamara(3)" id="slot-3"><span>📷 Foto 4<br>Atrás</span></div>
-                    <div class="photo-slot" onclick="abrirCamara(4)" id="slot-4"><span>📷 Foto 5<br>Detalle</span></div>
-                    <div class="photo-slot" onclick="abrirCamara(5)" id="slot-5"><span>📷 Foto 6<br>Detalle</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(0)" id="slot-0"><span>📷 Frente</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(1)" id="slot-1"><span>📷 Lat. Izq</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(2)" id="slot-2"><span>📷 Lat. Der</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(3)" id="slot-3"><span>📷 Atrás</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(4)" id="slot-4"><span>📷 Detalle 1</span></div>
+                    <div class="photo-slot" onclick="abrirCamara(5)" id="slot-5"><span>📷 Detalle 2</span></div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>2. DOMINIO (Patente)</label>
-                <input type="text" id="inputDominio" class="form-control" placeholder="Ej: AB 123 CD" required style="text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
-            </div>
-
-            <div class="form-group">
-                <label>3. MARCA / MODELO</label>
+                <label>2. MARCA / MODELO</label>
                 <input type="text" id="inputMarcaModelo" class="form-control" placeholder="Ej: Toyota Corolla" required>
             </div>
 
             <div class="form-group">
-                <label>4. VALET PARKING (Chofer que entra)</label>
+                <label>3. DOMINIO (Patente)</label>
+                <input type="text" id="inputDominio" class="form-control" placeholder="Ej: AB 123 CD" required style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+                <label>4. VALET PARKING (Chofer que ingresa)</label>
                 <input type="text" id="inputValetEntra" class="form-control" placeholder="Apellido y Nombre" required>
             </div>
 
             <div class="form-group">
                 <label>5. OBSERVACIONES (Opcional)</label>
-                <input type="text" id="inputObservaciones" class="form-control" placeholder="Ej: Toque paragolpe, Habitación, etc.">
+                <input type="text" id="inputObservaciones" class="form-control" placeholder="Ej: Rayón en paragolpes, Habitación 204">
             </div>
 
             <button type="submit" class="btn-submit">⏳ ENVIAR A PENDIENTES</button>
         </form>
     </main>
 
-    <!-- PESTAÑA 2: PENDIENTES -->
+    <!-- PESTAÑA 2: PENDIENTES Y PLANO DE COCHERAS -->
     <main id="tab-pendientes" class="tab-content">
-        <h2 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--accent-amber);">AUTOS EN MOVIMIENTO (Esperando Cochera)</h2>
+        <h2 class="section-title">AUTOS EN ESPERA DE COCHERA</h2>
         <div id="listaPendientes"></div>
 
         <div class="card" style="margin-top: 20px;">
             <label style="font-size:0.85rem; font-weight:bold; color:var(--text-main); display:block;">PLANO DE COCHERAS</label>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Verde: Libre (tocá para elegir) | Rojo: Ocupada</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Verde: Libre (tocá para asignar) | Rojo: Ocupada</p>
             
             <div class="plano-wrapper">
                 <div class="plano-layout" id="planoCocheras"></div>
@@ -396,18 +72,18 @@
         </div>
     </main>
 
-    <!-- PESTAÑA 3: ADENTRO / SALIDA -->
+    <!-- PESTAÑA 3: ADENTRO Y SALIDA -->
     <main id="tab-adentro" class="tab-content">
         <div class="card">
             <div class="form-group" style="margin-bottom:0;">
                 <label>🔍 BUSCAR VEHÍCULO ADENTRO</label>
-                <input type="text" id="buscarInput" class="form-control" placeholder="Buscar por dominio, cochera (ej: B2) o marca..." onkeyup="renderizarAdentro()">
+                <input type="text" id="buscarInput" class="form-control" placeholder="Buscar por patente, marca o cochera..." onkeyup="renderizarAdentro()">
             </div>
         </div>
         <div id="listaAdentro"></div>
     </main>
 
-    <!-- MODAL CÁMARA -->
+    <!-- MODAL DE CÁMARA -->
     <div id="cameraModal">
         <video id="videoPreview" autoplay playsinline></video>
         <div class="camera-controls">
@@ -430,330 +106,6 @@
         </button>
     </nav>
 
-    <script>
-        let fotosCapturadas = [null, null, null, null, null, null];
-        let slotActual = null;
-        let streamCamara = null;
-        let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbzAoBtKJgtBh45V7RxSb-5f0LrEUiEOKQJf_osXUHqtP7-mDGyPeEqUc6_92XjyOBFT/exec';
-
-        const colA = ['A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1'];
-        const fila1 = ['B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'M1', 'L1'];
-        const fila2 = ['B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2', 'M2', 'L2'];
-        const fila3 = ['B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3', 'M3', 'L3'];
-        const fila4 = ['B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4', 'M4', 'L4'];
-
-        setInterval(() => {
-            const ahora = new Date();
-            document.getElementById('relojVivo').innerText = `📅 ${ahora.toLocaleDateString('es-AR')}  |  🕒 ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
-        }, 1000);
-
-        function actualizarContadorPendientes() {
-            const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-            const badge = document.getElementById('badgePendientes');
-            if (pendientes.length > 0) {
-                badge.style.display = 'inline-block';
-                badge.innerText = pendientes.length;
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function cambiarTab(tabName, element) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            element.classList.add('active');
-
-            if (tabName === 'pendientes') {
-                renderizarPendientes();
-                renderizarPlanoCocheras();
-            }
-            if (tabName === 'adentro') {
-                renderizarAdentro();
-            }
-        }
-
-        function configurarWebhook() {
-            const url = prompt("Pegá la URL de tu Google Apps Script:", webhookUrl);
-            if (url !== null) {
-                webhookUrl = url.trim();
-                localStorage.setItem('webhook_url', webhookUrl);
-                alert("URL guardada.");
-            }
-        }
-
-        async function abrirCamara(index) {
-            slotActual = index;
-            const modal = document.getElementById('cameraModal');
-            const video = document.getElementById('videoPreview');
-
-            try {
-                streamCamara = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
-                });
-                video.srcObject = streamCamara;
-                modal.style.display = 'flex';
-            } catch (err) {
-                alert("No se pudo abrir la cámara.");
-            }
-        }
-
-        function cerrarCamara() {
-            if (streamCamara) streamCamara.getTracks().forEach(t => t.stop());
-            document.getElementById('cameraModal').style.display = 'none';
-        }
-
-        function capturarFoto() {
-            const video = document.getElementById('videoPreview');
-            const canvas = document.createElement('canvas');
-            const maxWidth = 800;
-            const scale = maxWidth / video.videoWidth;
-            canvas.width = maxWidth;
-            canvas.height = video.videoHeight * scale;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-            fotosCapturadas[slotActual] = dataUrl;
-            document.getElementById(`slot-${slotActual}`).innerHTML = `<img src="${dataUrl}">`;
-            cerrarCamara();
-        }
-
-        function pasarAPendientes(e) {
-            e.preventDefault();
-            const ahora = new Date();
-
-            const nuevoAuto = {
-                id: Date.now(),
-                fechaIngreso: ahora.toLocaleDateString('es-AR'),
-                horaIngreso: ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
-                dominio: document.getElementById('inputDominio').value.toUpperCase().trim(),
-                marcaModelo: document.getElementById('inputMarcaModelo').value.trim(),
-                valetEntra: document.getElementById('inputValetEntra').value.trim(),
-                observaciones: document.getElementById('inputObservaciones').value.trim(),
-                fotos: fotosCapturadas.filter(f => f !== null)
-            };
-
-            let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-            pendientes.push(nuevoAuto);
-            localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
-
-            document.getElementById('formIngreso').reset();
-            fotosCapturadas = [null, null, null, null, null, null];
-            const labels = ['Foto 1<br>Frente', 'Foto 2<br>Lat. Izq', 'Foto 3<br>Lat. Der', 'Foto 4<br>Atrás', 'Foto 5<br>Detalle', 'Foto 6<br>Detalle'];
-            for (let i = 0; i < 6; i++) {
-                document.getElementById(`slot-${i}`).innerHTML = `<span>📷 ${labels[i]}</span>`;
-            }
-
-            actualizarContadorPendientes();
-            alert(`✅ Dominio ${nuevoAuto.dominio} enviado a PENDIENTES.`);
-        }
-
-        function renderizarPendientes() {
-            const contenedor = document.getElementById('listaPendientes');
-            const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-
-            if (pendientes.length === 0) {
-                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay autos esperando cochera.</div>';
-                return;
-            }
-
-            contenedor.innerHTML = pendientes.map(auto => `
-                <div class="car-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <h3 style="color:var(--accent-blue); font-size:1.3rem;">${auto.dominio}</h3>
-                        <span class="badge badge-pendiente">⏳ ${auto.horaIngreso}</span>
-                    </div>
-                    <p style="font-size:0.95rem; font-weight:bold;">${auto.marcaModelo}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">Valet: ${auto.valetEntra} | Fotos: ${auto.fotos.length}</p>
-                    ${auto.observaciones ? `<p style="font-size:0.8rem; color:var(--accent-amber); margin-top:2px;">Obs: ${auto.observaciones}</p>` : ''}
-                    
-                    <div style="display:flex; gap:8px; margin-top:12px;">
-                        <input type="text" id="input-cochera-${auto.id}" class="form-control" placeholder="Cochera (Ej: B2)" style="padding:10px; text-transform:uppercase;">
-                        <button type="button" id="btn-conf-${auto.id}" onclick="confirmarCochera(${auto.id})" class="btn-confirm">Confirmar</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function seleccionarCocheraPlano(codigo) {
-            const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-            if (pendientes.length > 0) {
-                const primerInput = document.getElementById(`input-cochera-${pendientes[0].id}`);
-                if (primerInput) primerInput.value = codigo;
-            } else {
-                alert(`Cochera ${codigo} libre. Cargá primero un auto en Ingreso.`);
-            }
-        }
-
-        function crearCeldaCochera(codigo, ocupadas) {
-            const estaOcupada = ocupadas.includes(codigo);
-            if (estaOcupada) {
-                return `<div class="cochera-box cochera-ocupada" title="Ocupada">${codigo}</div>`;
-            }
-            return `<div class="cochera-box cochera-libre" onclick="seleccionarCocheraPlano('${codigo}')">${codigo}</div>`;
-        }
-
-        function renderizarPlanoCocheras() {
-            const contenedor = document.getElementById('planoCocheras');
-            const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-            const ocupadas = adentro.map(a => a.cochera.toUpperCase());
-
-            const htmlColA = colA.map(c => crearCeldaCochera(c, ocupadas)).join('');
-            const htmlFila1 = fila1.map(c => crearCeldaCochera(c, ocupadas)).join('');
-            const htmlFila2 = fila2.map(c => crearCeldaCochera(c, ocupadas)).join('');
-            const htmlFila3 = fila3.map(c => crearCeldaCochera(c, ocupadas)).join('');
-            const htmlFila4 = fila4.map(c => crearCeldaCochera(c, ocupadas)).join('');
-
-            contenedor.innerHTML = `
-                <div class="col-a">${htmlColA}</div>
-                <div class="bloque-central">
-                    <div class="grupo-filas">
-                        <div class="fila-cocheras">${htmlFila1}</div>
-                        <div class="fila-cocheras">${htmlFila2}</div>
-                    </div>
-                    <div class="grupo-filas">
-                        <div class="fila-cocheras">${htmlFila3}</div>
-                        <div class="fila-cocheras">${htmlFila4}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function confirmarCochera(id) {
-            const input = document.getElementById(`input-cochera-${id}`);
-            const cochera = input.value.trim().toUpperCase();
-            if (!cochera) return alert("Escribí o tocá una cochera del plano.");
-
-            let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-            const yaOcupada = adentro.some(a => a.cochera.toUpperCase() === cochera);
-            if (yaOcupada) {
-                return alert(`⚠️ ¡Atención! La cochera ${cochera} ya figura OCUPADA.`);
-            }
-
-            const btn = document.getElementById(`btn-conf-${id}`);
-            btn.disabled = true;
-            btn.innerText = "Subiendo...";
-
-            let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-            const index = pendientes.findIndex(a => a.id === id);
-            if (index === -1) return;
-
-            const autoConfirmado = pendientes[index];
-            autoConfirmado.cochera = cochera;
-            autoConfirmado.accion = "ingreso";
-
-            if (webhookUrl) {
-                try {
-                    await fetch(webhookUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(autoConfirmado)
-                    });
-                } catch (err) {
-                    console.error("Error al enviar ingreso:", err);
-                }
-            }
-
-            pendientes.splice(index, 1);
-            localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
-
-            const resumenAuto = { ...autoConfirmado, fotos: [] };
-            adentro.unshift(resumenAuto);
-            localStorage.setItem('autos_adentro', JSON.stringify(adentro));
-
-            actualizarContadorPendientes();
-            renderizarPendientes();
-            renderizarPlanoCocheras();
-            alert(`🚀 Cochera ${cochera} confirmada y guardada.`);
-        }
-
-        function renderizarAdentro() {
-            const query = document.getElementById('buscarInput').value.toUpperCase().trim();
-            const contenedor = document.getElementById('listaAdentro');
-            const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-
-            const filtrados = adentro.filter(a => 
-                a.dominio.includes(query) || 
-                a.cochera.includes(query) || 
-                a.marcaModelo.toUpperCase().includes(query)
-            );
-
-            if (filtrados.length === 0) {
-                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay vehículos estacionados con ese filtro.</div>';
-                return;
-            }
-
-            contenedor.innerHTML = filtrados.map(auto => `
-                <div class="car-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <h3 style="font-size:1.3rem;">${auto.dominio}</h3>
-                        <span class="badge badge-estacionado">📍 COCHERA ${auto.cochera}</span>
-                    </div>
-                    <p style="font-size:0.95rem; font-weight:bold; color:var(--text-main);">${auto.marcaModelo}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Entrada: ${auto.fechaIngreso} - ${auto.horaIngreso} hs</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">Valet Entra: ${auto.valetEntra}</p>
-                    ${auto.observaciones ? `<p style="font-size:0.8rem; color:var(--accent-amber);">Obs: ${auto.observaciones}</p>` : ''}
-                    
-                    <button type="button" id="btn-sal-${auto.id}" onclick="darDeBaja(${auto.id})" class="btn-salida">🚗 Registrar Salida / Liberar ${auto.cochera}</button>
-                </div>
-            `).join('');
-        }
-
-        async function darDeBaja(id) {
-            let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-            const index = adentro.findIndex(a => a.id === id);
-            if (index === -1) return;
-
-            const auto = adentro[index];
-            const valetSale = prompt(`Salida de ${auto.dominio} (Cochera ${auto.cochera}).\nIngresá el Valet Parking / Chofer que lo retira:`);
-            
-            if (!valetSale || valetSale.trim() === "") return;
-
-            const btn = document.getElementById(`btn-sal-${id}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.innerText = "Registrando salida...";
-            }
-
-            const ahora = new Date();
-            const fechaSalida = ahora.toLocaleDateString('es-AR');
-            const horaSalida = ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
-
-            if (webhookUrl) {
-                try {
-                    await fetch(webhookUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            accion: "salida",
-                            fechaSalida: fechaSalida,
-                            horaEntrada: auto.horaIngreso,
-                            horaSalida: horaSalida,
-                            marcaModelo: auto.marcaModelo,
-                            dominio: auto.dominio,
-                            observaciones: auto.observaciones,
-                            cochera: auto.cochera,
-                            valetEntra: auto.valetEntra,
-                            valetSale: valetSale.trim()
-                        })
-                    });
-                } catch (err) {
-                    console.error("Error al registrar salida:", err);
-                }
-            }
-
-            adentro.splice(index, 1);
-            localStorage.setItem('autos_adentro', JSON.stringify(adentro));
-
-            renderizarAdentro();
-            alert(`✅ Salida anotada en el Sheet. La cochera ${auto.cochera} volvió a quedar LIBRE.`);
-        }
-
-        actualizarContadorPendientes();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
