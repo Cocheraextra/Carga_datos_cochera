@@ -42,17 +42,15 @@ header h1 { font-size: 0.95rem; }
     gap: 6px;
 }
 
-.btn-config, .btn-reset {
+.btn-reset {
     background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 5px 8px;
+    border: 1px solid var(--primary-red);
+    color: #fca5a5;
+    padding: 5px 10px;
     border-radius: 6px;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     cursor: pointer;
 }
-
-.btn-reset { border-color: var(--primary-red); color: #fca5a5; }
 
 .tab-content {
     display: none;

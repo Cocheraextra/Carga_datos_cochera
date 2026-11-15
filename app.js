@@ -6,18 +6,15 @@ let fotosCapturadas = [null, null, null, null, null, null];
 let slotActual = null;
 let streamCamara = null;
 
-// URL definitiva y oficial de la API de Google Apps Script
-const WEBHOOK_URL_DEFINITIVA = 'https://script.google.com/macros/s/AKfycbyJgHDh2FRu0PuIjNqfXX8yzPhRk5JRI1vTRajfg8oEmZPUrvMK9fziyTgBsU4Wv59f/exec';
+// URL fija y definitiva de la API de Google Apps Script
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbznDeCl75wwt8I3ocqPh6TkrAd_-KiqPfpFEWWkWDMp1RfNUHUAzuKPs3q1LnWguT_t_Q/exec';
 
-// Forzar la actualización y limpieza de la memoria interna en cada celular al iniciar
-if (localStorage.getItem('api_version_limpia') !== 'v3') {
+// Limpieza automática de la memoria interna al actualizar el sistema
+if (localStorage.getItem('api_version_limpia') !== 'v4') {
     localStorage.removeItem('autos_pendientes');
     localStorage.removeItem('autos_adentro');
-    localStorage.setItem('api_version_limpia', 'v3');
+    localStorage.setItem('api_version_limpia', 'v4');
 }
-
-let webhookUrl = WEBHOOK_URL_DEFINITIVA;
-localStorage.setItem('webhook_url', webhookUrl);
 
 // Mapa de cocheras oficial del hotel
 const colA = ['A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1'];
@@ -65,10 +62,6 @@ function cambiarTab(tabName, element) {
     if (tabName === 'adentro') {
         renderizarAdentro();
     }
-}
-
-function configurarWebhook() {
-    alert("ℹ️ La API del proyecto está configurada de forma fija y oficial:\n\n" + webhookUrl);
 }
 
 /* ==========================================
@@ -135,17 +128,15 @@ async function guardarIngreso(e) {
     pendientes.push(nuevoAuto);
     localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
 
-    if (webhookUrl) {
-        try {
-            await fetch(webhookUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(nuevoAuto)
-            });
-        } catch (err) {
-            console.error("Error al enviar a pendientes:", err);
-        }
+    try {
+        await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevoAuto)
+        });
+    } catch (err) {
+        console.error("Error al enviar a pendientes:", err);
     }
 
     document.getElementById('formIngreso').reset();
@@ -248,17 +239,15 @@ async function confirmarCochera(idUnico) {
     auto.foto5 = auto.fotos[4] || "";
     auto.foto6 = auto.fotos[5] || "";
 
-    if (webhookUrl) {
-        try {
-            await fetch(webhookUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(auto)
-            });
-        } catch (err) {
-            console.error("Error al confirmar cochera:", err);
-        }
+    try {
+        await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(auto)
+        });
+    } catch (err) {
+        console.error("Error al confirmar cochera:", err);
     }
 
     pendientes.splice(index, 1);
@@ -324,17 +313,15 @@ async function darDeBaja(idUnico) {
     auto.valetSale = valetSale.trim();
     auto.fechaHoraSalida = fechaHoraSalida;
 
-    if (webhookUrl) {
-        try {
-            await fetch(webhookUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(auto)
-            });
-        } catch (err) {
-            console.error("Error al registrar salida:", err);
-        }
+    try {
+        await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(auto)
+        });
+    } catch (err) {
+        console.error("Error al registrar salida:", err);
     }
 
     adentro.splice(index, 1);
