@@ -1,14 +1,25 @@
 /* ==========================================
-   LÓGICA GENERAL DE LA APLICACIÓN
+   LÓGICA GENERAL DE LA APLICACIÓN - VALET PARKING
    ================-------------------------- */
 
 let fotosCapturadas = [null, null, null, null, null, null];
 let slotActual = null;
 let streamCamara = null;
 
-let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbyJgHDh2FRu0PuIjNqfXX8yzPhRk5JRI1vTRajfg8oEmZPUrvMK9fziyTgBsU4Wv59f/exec';
+// URL definitiva y oficial de la API de Google Apps Script
+const WEBHOOK_URL_DEFINITIVA = 'https://script.google.com/macros/s/AKfycbyJgHDh2FRu0PuIjNqfXX8yzPhRk5JRI1vTRajfg8oEmZPUrvMK9fziyTgBsU4Wv59f/exec';
 
-// Mapa de cocheras
+// Forzar la actualización y limpieza de la memoria interna en cada celular al iniciar
+if (localStorage.getItem('api_version_limpia') !== 'v3') {
+    localStorage.removeItem('autos_pendientes');
+    localStorage.removeItem('autos_adentro');
+    localStorage.setItem('api_version_limpia', 'v3');
+}
+
+let webhookUrl = WEBHOOK_URL_DEFINITIVA;
+localStorage.setItem('webhook_url', webhookUrl);
+
+// Mapa de cocheras oficial del hotel
 const colA = ['A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1'];
 const fila1 = ['B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'M1', 'L1'];
 const fila2 = ['B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2', 'M2', 'L2'];
@@ -57,12 +68,7 @@ function cambiarTab(tabName, element) {
 }
 
 function configurarWebhook() {
-    const url = prompt("Pegá la URL de tu Google Apps Script:", webhookUrl);
-    if (url !== null) {
-        webhookUrl = url.trim();
-        localStorage.setItem('webhook_url', webhookUrl);
-        alert("URL guardada correctamente.");
-    }
+    alert("ℹ️ La API del proyecto está configurada de forma fija y oficial:\n\n" + webhookUrl);
 }
 
 /* ==========================================
@@ -105,13 +111,12 @@ function capturarFoto() {
 }
 
 /* ==========================================
-   PASO 1: GUARDAR INGRESO -> HOJA "PENDIENTES"
+   PASO 1: GUARDAR INGRESO -> HOJA "Pendientes"
    ================-------------------------- */
 async function guardarIngreso(e) {
     e.preventDefault();
     const ahora = new Date();
     
-    // Generación de ID autoincremental único basado en milisegundos y número aleatorio
     const idUnico = "ID-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
     const fechaHoraIngreso = `${ahora.toLocaleDateString('es-AR')} ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}`;
 
@@ -130,7 +135,6 @@ async function guardarIngreso(e) {
     pendientes.push(nuevoAuto);
     localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
 
-    // Enviar a la Hoja 1 (Pendientes) en Google Sheets
     if (webhookUrl) {
         try {
             await fetch(webhookUrl, {
@@ -156,7 +160,7 @@ async function guardarIngreso(e) {
 }
 
 /* ==========================================
-   PASO 2: ASIGNAR COCHERA -> PASA A HOJA "ADENTRO"
+   PASO 2: ASIGNAR COCHERA -> HOJA "Adentro"
    ================-------------------------- */
 function renderizarPendientes() {
     const contenedor = document.getElementById('listaPendientes');
@@ -237,7 +241,6 @@ async function confirmarCochera(idUnico) {
     auto.cochera = cochera;
     auto.accion = "confirmar_cochera";
 
-    // Preparar fotos individuales para la fila de la Hoja 2
     auto.foto1 = auto.fotos[0] || "";
     auto.foto2 = auto.fotos[1] || "";
     auto.foto3 = auto.fotos[2] || "";
@@ -271,7 +274,7 @@ async function confirmarCochera(idUnico) {
 }
 
 /* ==========================================
-   PASO 3: ADENTRO Y SALIDA -> HOJA "HISTORIAL"
+   PASO 3: ADENTRO Y SALIDA -> HOJA "Historial"
    ================-------------------------- */
 function renderizarAdentro() {
     const query = document.getElementById('buscarInput').value.toUpperCase().trim();
