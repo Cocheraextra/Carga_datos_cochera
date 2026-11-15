@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valet Parking - Control Hotel</title>
+    <title>Valet Parking - Control Cochera</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -57,7 +57,7 @@
         .tab-content {
             display: none;
             padding: 15px;
-            max-width: 600px;
+            max-width: 750px;
             margin: 0 auto;
         }
 
@@ -109,7 +109,7 @@
             border-color: var(--accent-blue);
         }
 
-        /* Grilla de 6 fotos (3x2) */
+        /* Grilla de 6 fotos */
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -128,7 +128,6 @@
             justify-content: center;
             cursor: pointer;
             overflow: hidden;
-            position: relative;
         }
 
         .photo-slot img {
@@ -165,6 +164,7 @@
             font-weight: bold;
             font-size: 0.9rem;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .btn-salida {
@@ -180,32 +180,70 @@
             margin-top: 10px;
         }
 
-        /* Mapa de Cocheras */
-        .cocheras-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
+        /* PLANO REAL DE COCHERAS */
+        .plano-wrapper {
+            overflow-x: auto;
+            padding-bottom: 8px;
             margin-top: 10px;
         }
 
+        .plano-layout {
+            display: flex;
+            gap: 16px;
+            min-width: 600px;
+        }
+
+        .col-a {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 56px;
+            flex-shrink: 0;
+        }
+
+        .bloque-central {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex: 1;
+            gap: 24px; /* Pasillo central */
+        }
+
+        .grupo-filas {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .fila-cocheras {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 4px;
+        }
+
         .cochera-box {
-            padding: 8px 4px;
+            padding: 10px 2px;
             text-align: center;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            border-radius: 5px;
+            font-size: 0.78rem;
             font-weight: bold;
             border: 1px solid var(--border-color);
             cursor: pointer;
+            user-select: none;
         }
 
         .cochera-libre {
-            background-color: rgba(34, 197, 94, 0.15);
+            background-color: rgba(34, 197, 94, 0.18);
             color: #86efac;
-            border-color: rgba(34, 197, 94, 0.4);
+            border-color: rgba(34, 197, 94, 0.45);
+        }
+
+        .cochera-libre:active {
+            transform: scale(0.95);
         }
 
         .cochera-ocupada {
-            background-color: rgba(239, 68, 68, 0.25);
+            background-color: rgba(239, 68, 68, 0.3);
             color: #fca5a5;
             border-color: var(--primary-red);
             cursor: not-allowed;
@@ -306,17 +344,17 @@
 <body>
 
     <header>
-        <h1>🏨 Valet Parking</h1>
+        <h1>🏨 Valet Parking Hotel</h1>
         <button class="btn-config" onclick="configurarWebhook()">⚙️ API Sheet</button>
     </header>
 
-    <!-- PESTAÑA 1: INGRESO RÁPIDO (VIGILADOR) -->
+    <!-- PESTAÑA 1: INGRESO (VIGILADOR) -->
     <main id="tab-ingreso" class="tab-content active">
         <div class="live-clock" id="relojVivo">Cargando fecha y hora...</div>
 
         <form id="formIngreso" class="card" onsubmit="pasarAPendientes(event)">
             <div class="form-group">
-                <label>1. FOTOS DEL VEHÍCULO (Hasta 6)</label>
+                <label>1. FOTOS DEL ESTADO (Hasta 6)</label>
                 <div class="photo-grid">
                     <div class="photo-slot" onclick="abrirCamara(0)" id="slot-0"><span>📷 Foto 1<br>Frente</span></div>
                     <div class="photo-slot" onclick="abrirCamara(1)" id="slot-1"><span>📷 Foto 2<br>Lat. Izq</span></div>
@@ -328,36 +366,43 @@
             </div>
 
             <div class="form-group">
-                <label>2. PATENTE</label>
-                <input type="text" id="inputPatente" class="form-control" placeholder="Ej: AB 123 CD" required style="text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
+                <label>2. DOMINIO (Patente)</label>
+                <input type="text" id="inputDominio" class="form-control" placeholder="Ej: AB 123 CD" required style="text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
             </div>
 
             <div class="form-group">
-                <label>3. COLOR Y MARCA / MODELO</label>
-                <input type="text" id="inputVehiculo" class="form-control" placeholder="Ej: Gris - Toyota Corolla" required>
+                <label>3. MARCA / MODELO</label>
+                <input type="text" id="inputMarcaModelo" class="form-control" placeholder="Ej: Toyota Corolla" required>
             </div>
 
             <div class="form-group">
-                <label>4. QUIÉN CONDUCE (Valet Parking)</label>
-                <input type="text" id="inputChofer" class="form-control" placeholder="Apellido y Nombre" required>
+                <label>4. VALET PARKING (Chofer que entra)</label>
+                <input type="text" id="inputValetEntra" class="form-control" placeholder="Apellido y Nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label>5. OBSERVACIONES (Opcional)</label>
+                <input type="text" id="inputObservaciones" class="form-control" placeholder="Ej: Toque paragolpe, Habitación, etc.">
             </div>
 
             <button type="submit" class="btn-submit">⏳ ENVIAR A PENDIENTES</button>
         </form>
     </main>
 
-    <!-- PESTAÑA 2: PENDIENTES Y ASIGNACIÓN DE COCHERA -->
+    <!-- PESTAÑA 2: PENDIENTES Y PLANO DE COCHERA -->
     <main id="tab-pendientes" class="tab-content">
         <h2 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--accent-amber);">AUTOS EN MOVIMIENTO (Esperando Cochera)</h2>
         <div id="listaPendientes"></div>
 
         <div class="card" style="margin-top: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label style="font-size:0.8rem; font-weight:bold; color:var(--text-muted);">ESTADO DE COCHERAS</label>
-                <button type="button" onclick="cambiarTotalCocheras()" style="background:none; border:none; color:var(--accent-blue); font-size:0.75rem; cursor:pointer;">Editar cantidad</button>
+            <label style="font-size:0.85rem; font-weight:bold; color:var(--text-main); display:block;">PLANO DE COCHERAS</label>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Verde: Libre (tocá para elegir) | Rojo: Ocupada (deslizá hacia los costados para ver todas)</p>
+            
+            <div class="plano-wrapper">
+                <div class="plano-layout" id="planoCocheras">
+                    <!-- Se dibuja dinámicamente con la distribución exacta -->
+                </div>
             </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Verde: Libre | Rojo: Ocupada (Tocá una libre para copiar el N°)</p>
-            <div class="cocheras-grid" id="mapaCocheras"></div>
         </div>
     </main>
 
@@ -365,8 +410,8 @@
     <main id="tab-adentro" class="tab-content">
         <div class="card">
             <div class="form-group" style="margin-bottom:0;">
-                <label>🔍 BUSCAR AUTO ADENTRO</label>
-                <input type="text" id="buscarInput" class="form-control" placeholder="Buscar por patente, cochera o modelo..." onkeyup="renderizarAdentro()">
+                <label>🔍 BUSCAR VEHÍCULO ADENTRO</label>
+                <input type="text" id="buscarInput" class="form-control" placeholder="Buscar por dominio, cochera (ej: B2) o marca..." onkeyup="renderizarAdentro()">
             </div>
         </div>
         <div id="listaAdentro"></div>
@@ -401,9 +446,16 @@
         let slotActual = null;
         let streamCamara = null;
         let webhookUrl = localStorage.getItem('webhook_url') || 'https://script.google.com/macros/s/AKfycbzAoBtKJgtBh45V7RxSb-5f0LrEUiEOKQJf_osXUHqtP7-mDGyPeEqUc6_92XjyOBFT/exec';
-        let totalCocheras = parseInt(localStorage.getItem('total_cocheras')) || 30;
 
-        // Reloj en tiempo real
+        // Estructura exacta del plano del hotel
+        const colA = ['A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1'];
+        const fila1 = ['B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'M1', 'L1'];
+        const fila2 = ['B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2', 'M2', 'L2'];
+        const fila3 = ['B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3', 'M3', 'L3'];
+        const fila4 = ['B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4', 'M4', 'L4'];
+        const todasLasCocheras = [...colA, ...fila1, ...fila2, ...fila3, ...fila4];
+
+        // Reloj en vivo
         setInterval(() => {
             const ahora = new Date();
             document.getElementById('relojVivo').innerText = `📅 ${ahora.toLocaleDateString('es-AR')}  |  🕒 ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
@@ -428,7 +480,7 @@
 
             if (tabName === 'pendientes') {
                 renderizarPendientes();
-                renderizarMapaCocheras();
+                renderizarPlanoCocheras();
             }
             if (tabName === 'adentro') {
                 renderizarAdentro();
@@ -441,15 +493,6 @@
                 webhookUrl = url.trim();
                 localStorage.setItem('webhook_url', webhookUrl);
                 alert("URL guardada.");
-            }
-        }
-
-        function cambiarTotalCocheras() {
-            const num = prompt("¿Cuántas cocheras tiene el hotel en total?", totalCocheras);
-            if (num && !isNaN(num)) {
-                totalCocheras = parseInt(num);
-                localStorage.setItem('total_cocheras', totalCocheras);
-                renderizarMapaCocheras();
             }
         }
 
@@ -466,7 +509,7 @@
                 video.srcObject = streamCamara;
                 modal.style.display = 'flex';
             } catch (err) {
-                alert("No se pudo abrir la cámara. Verificá los permisos del navegador.");
+                alert("No se pudo abrir la cámara. Verificá los permisos.");
             }
         }
 
@@ -478,7 +521,6 @@
         function capturarFoto() {
             const video = document.getElementById('videoPreview');
             const canvas = document.createElement('canvas');
-            // Redimensionar ligeramente para que 6 fotos suban rápido al Drive sin trabarse
             const maxWidth = 800;
             const scale = maxWidth / video.videoWidth;
             canvas.width = maxWidth;
@@ -493,7 +535,7 @@
             cerrarCamara();
         }
 
-        // PASO 1: GUARDAR EN PENDIENTES (LIBERA LA PANTALLA PARA EL SIGUIENTE AUTO)
+        // PASO 1: GUARDAR EN PENDIENTES
         function pasarAPendientes(e) {
             e.preventDefault();
             const ahora = new Date();
@@ -502,9 +544,10 @@
                 id: Date.now(),
                 fechaIngreso: ahora.toLocaleDateString('es-AR'),
                 horaIngreso: ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
-                patente: document.getElementById('inputPatente').value.toUpperCase().trim(),
-                vehiculo: document.getElementById('inputVehiculo').value.trim(),
-                chofer: document.getElementById('inputChofer').value.trim(),
+                dominio: document.getElementById('inputDominio').value.toUpperCase().trim(),
+                marcaModelo: document.getElementById('inputMarcaModelo').value.trim(),
+                valetEntra: document.getElementById('inputValetEntra').value.trim(),
+                observaciones: document.getElementById('inputObservaciones').value.trim(),
                 fotos: fotosCapturadas.filter(f => f !== null)
             };
 
@@ -512,7 +555,6 @@
             pendientes.push(nuevoAuto);
             localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
 
-            // Resetear formulario al instante para recibir otro auto
             document.getElementById('formIngreso').reset();
             fotosCapturadas = [null, null, null, null, null, null];
             const labels = ['Foto 1<br>Frente', 'Foto 2<br>Lat. Izq', 'Foto 3<br>Lat. Der', 'Foto 4<br>Atrás', 'Foto 5<br>Detalle', 'Foto 6<br>Detalle'];
@@ -521,70 +563,96 @@
             }
 
             actualizarContadorPendientes();
-            alert(`✅ Auto ${nuevoAuto.patente} pasado a PENDIENTES. Ya podés cargar otro.`);
+            alert(`✅ Dominio ${nuevoAuto.dominio} enviado a PENDIENTES.`);
         }
 
-        // PASO 2: PENDIENTES Y CONFIRMACIÓN DE COCHERA -> ENVÍA AL GOOGLE SHEET
+        // PASO 2: PENDIENTES Y PLANO DE COCHERA
         function renderizarPendientes() {
             const contenedor = document.getElementById('listaPendientes');
             const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
 
             if (pendientes.length === 0) {
-                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay autos esperando cochera en este momento.</div>';
+                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay autos esperando cochera.</div>';
                 return;
             }
 
             contenedor.innerHTML = pendientes.map(auto => `
                 <div class="car-item">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <h3 style="color:var(--accent-blue); font-size:1.3rem;">${auto.patente}</h3>
-                        <span class="badge badge-pendiente">⏳ En movimiento (${auto.horaIngreso})</span>
+                        <h3 style="color:var(--accent-blue); font-size:1.3rem;">${auto.dominio}</h3>
+                        <span class="badge badge-pendiente">⏳ ${auto.horaIngreso}</span>
                     </div>
-                    <p style="font-size:0.9rem; font-weight:bold;">${auto.vehiculo}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">Chofer: ${auto.chofer} | Fotos: ${auto.fotos.length}</p>
+                    <p style="font-size:0.95rem; font-weight:bold;">${auto.marcaModelo}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Valet: ${auto.valetEntra} | Fotos: ${auto.fotos.length}</p>
+                    ${auto.observaciones ? `<p style="font-size:0.8rem; color:var(--accent-amber); margin-top:2px;">Obs: ${auto.observaciones}</p>` : ''}
                     
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <input type="text" id="input-cochera-${auto.id}" class="form-control" placeholder="N° Cochera" style="padding:10px;">
+                        <input type="text" id="input-cochera-${auto.id}" class="form-control" placeholder="Cochera (Ej: B2)" style="padding:10px; text-transform:uppercase;">
                         <button type="button" id="btn-conf-${auto.id}" onclick="confirmarCochera(${auto.id})" class="btn-confirm">Confirmar</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function seleccionarCocheraMapa(numero) {
+        function seleccionarCocheraPlano(codigo) {
             const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
             if (pendientes.length > 0) {
-                // Completa automáticamente el input del primer auto pendiente
                 const primerInput = document.getElementById(`input-cochera-${pendientes[0].id}`);
-                if (primerInput) primerInput.value = numero;
+                if (primerInput) primerInput.value = codigo;
+            } else {
+                alert(`Cochera ${codigo} libre. Cargá primero un auto en Ingreso.`);
             }
         }
 
-        function renderizarMapaCocheras() {
-            const mapa = document.getElementById('mapaCocheras');
-            const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-            const ocupadas = adentro.map(a => a.cochera.toString().toUpperCase());
-
-            let html = '';
-            for (let i = 1; i <= totalCocheras; i++) {
-                const estaOcupada = ocupadas.includes(i.toString());
-                if (estaOcupada) {
-                    html += `<div class="cochera-box cochera-ocupada" title="Ocupada">${i}</div>`;
-                } else {
-                    html += `<div class="cochera-box cochera-libre" onclick="seleccionarCocheraMapa('${i}')">${i}</div>`;
-                }
+        function crearCeldaCochera(codigo, ocupadas) {
+            const estaOcupada = ocupadas.includes(codigo);
+            if (estaOcupada) {
+                return `<div class="cochera-box cochera-ocupada" title="Ocupada">${codigo}</div>`;
             }
-            mapa.innerHTML = html;
+            return `<div class="cochera-box cochera-libre" onclick="seleccionarCocheraPlano('${codigo}')">${codigo}</div>`;
+        }
+
+        function renderizarPlanoCocheras() {
+            const contenedor = document.getElementById('planoCocheras');
+            const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
+            const ocupadas = adentro.map(a => a.cochera.toUpperCase());
+
+            const htmlColA = colA.map(c => crearCeldaCochera(c, ocupadas)).join('');
+            const htmlFila1 = fila1.map(c => crearCeldaCochera(c, ocupadas)).join('');
+            const htmlFila2 = fila2.map(c => crearCeldaCochera(c, ocupadas)).join('');
+            const htmlFila3 = fila3.map(c => crearCeldaCochera(c, ocupadas)).join('');
+            const htmlFila4 = fila4.map(c => crearCeldaCochera(c, ocupadas)).join('');
+
+            contenedor.innerHTML = `
+                <div class="col-a">${htmlColA}</div>
+                <div class="bloque-central">
+                    <div class="grupo-filas">
+                        <div class="fila-cocheras">${htmlFila1}</div>
+                        <div class="fila-cocheras">${htmlFila2}</div>
+                    </div>
+                    <div class="grupo-filas">
+                        <div class="fila-cocheras">${htmlFila3}</div>
+                        <div class="fila-cocheras">${htmlFila4}</div>
+                    </div>
+                </div>
+            `;
         }
 
         async function confirmarCochera(id) {
             const input = document.getElementById(`input-cochera-${id}`);
             const cochera = input.value.trim().toUpperCase();
-            if (!cochera) return alert("Escribí o seleccioná el número de cochera.");
+            if (!cochera) return alert("Escribí o tocá una cochera del plano.");
+
+            // Validar que no esté ocupada ya
+            let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
+            const yaOcupada = adentro.some(a => a.cochera.toUpperCase() === cochera);
+            if (yaOcupada) {
+                return alert(`⚠️ ¡Atención! La cochera ${cochera} ya figura OCUPADA por otro vehículo.`);
+            }
 
             const btn = document.getElementById(`btn-conf-${id}`);
             btn.disabled = true;
-            btn.innerText = "Enviando...";
+            btn.innerText = "Subiendo...";
 
             let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
             const index = pendientes.findIndex(a => a.id === id);
@@ -594,7 +662,7 @@
             autoConfirmado.cochera = cochera;
             autoConfirmado.accion = "ingreso";
 
-            // 1. Mandar datos + fotos al Google Sheet
+            // Enviar fila completa + fotos al Google Sheet
             if (webhookUrl) {
                 try {
                     await fetch(webhookUrl, {
@@ -604,53 +672,53 @@
                         body: JSON.stringify(autoConfirmado)
                     });
                 } catch (err) {
-                    console.error("Error al enviar a Sheet:", err);
+                    console.error("Error al enviar ingreso:", err);
                 }
             }
 
-            // 2. Mover de Pendientes a Adentro (sin guardar las fotos pesadas en el localStorage de adentro para no llenar la memoria)
+            // Mover a Adentro
             pendientes.splice(index, 1);
             localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
 
-            let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-            const resumenAuto = { ...autoConfirmado, fotos: [] }; // Las fotos ya están a salvo en Drive
+            const resumenAuto = { ...autoConfirmado, fotos: [] };
             adentro.unshift(resumenAuto);
             localStorage.setItem('autos_adentro', JSON.stringify(adentro));
 
             actualizarContadorPendientes();
             renderizarPendientes();
-            renderizarMapaCocheras();
-            alert(`🚀 Cochera ${cochera} confirmada y subida a Google Sheets.`);
+            renderizarPlanoCocheras();
+            alert(`🚀 Cochera ${cochera} confirmada y guardada en Google Sheets.`);
         }
 
-        // PASO 3: AUTOS ADENTRO, BUSCADOR Y SALIDA (LIBERA COCHERA)
+        // PASO 3: ADENTRO, BUSCADOR Y SALIDA (NUEVA FILA EN SHEET + LIBERA COCHERA)
         function renderizarAdentro() {
             const query = document.getElementById('buscarInput').value.toUpperCase().trim();
             const contenedor = document.getElementById('listaAdentro');
             const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
 
             const filtrados = adentro.filter(a => 
-                a.patente.includes(query) || 
+                a.dominio.includes(query) || 
                 a.cochera.includes(query) || 
-                a.vehiculo.toUpperCase().includes(query)
+                a.marcaModelo.toUpperCase().includes(query)
             );
 
             if (filtrados.length === 0) {
-                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No se encontraron vehículos estacionados.</div>';
+                contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay vehículos estacionados con ese filtro.</div>';
                 return;
             }
 
             contenedor.innerHTML = filtrados.map(auto => `
                 <div class="car-item">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <h3 style="font-size:1.3rem;">${auto.patente}</h3>
+                        <h3 style="font-size:1.3rem;">${auto.dominio}</h3>
                         <span class="badge badge-estacionado">📍 COCHERA ${auto.cochera}</span>
                     </div>
-                    <p style="font-size:0.95rem; font-weight:bold; color:var(--text-main);">${auto.vehiculo}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Entró: ${auto.fechaIngreso} a las ${auto.horaIngreso}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">Estacionó: ${auto.chofer}</p>
+                    <p style="font-size:0.95rem; font-weight:bold; color:var(--text-main);">${auto.marcaModelo}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Entrada: ${auto.fechaIngreso} - ${auto.horaIngreso} hs</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Valet Entra: ${auto.valetEntra}</p>
+                    ${auto.observaciones ? `<p style="font-size:0.8rem; color:var(--accent-amber);">Obs: ${auto.observaciones}</p>` : ''}
                     
-                    <button type="button" onclick="darDeBaja(${auto.id})" class="btn-salida">🚗 Registrar Salida / Liberar Cochera</button>
+                    <button type="button" id="btn-sal-${auto.id}" onclick="darDeBaja(${auto.id})" class="btn-salida">🚗 Registrar Salida / Liberar ${auto.cochera}</button>
                 </div>
             `).join('');
         }
@@ -661,14 +729,21 @@
             if (index === -1) return;
 
             const auto = adentro[index];
-            const retiradoPor = prompt(`Salida del vehículo ${auto.patente} (Cochera ${auto.cochera}).\n¿Quién lo retira? (Huésped / Chofer):`);
+            const valetSale = prompt(`Salida de ${auto.dominio} (Cochera ${auto.cochera}).\nIngresá el Valet Parking / Chofer que lo retira:`);
             
-            if (!retiradoPor || retiradoPor.trim() === "") return;
+            if (!valetSale || valetSale.trim() === "") return;
+
+            const btn = document.getElementById(`btn-sal-${id}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Registrando salida...";
+            }
 
             const ahora = new Date();
-            const fechaSalida = `${ahora.toLocaleDateString('es-AR')} ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}`;
+            const fechaSalida = ahora.toLocaleDateString('es-AR');
+            const horaSalida = ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
 
-            // Avisar al Google Sheet para que marque la salida en la fila correspondiente
+            // Manda nueva línea completa al Sheet con todos los datos del auto + Hora Salida + Valet Sale
             if (webhookUrl) {
                 try {
                     await fetch(webhookUrl, {
@@ -677,25 +752,30 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             accion: "salida",
-                            id: auto.id,
                             fechaSalida: fechaSalida,
-                            retiradoPor: retiradoPor.trim()
+                            horaEntrada: auto.horaIngreso,
+                            horaSalida: horaSalida,
+                            marcaModelo: auto.marcaModelo,
+                            dominio: auto.dominio,
+                            observaciones: auto.observaciones,
+                            cochera: auto.cochera,
+                            valetEntra: auto.valetEntra,
+                            valetSale: valetSale.trim()
                         })
                     });
                 } catch (err) {
-                    console.error("Error al registrar salida en Sheet:", err);
+                    console.error("Error al registrar salida:", err);
                 }
             }
 
-            // Quitar de Adentro (esto libera automáticamente la cochera en el mapa)
+            // Quitar de Adentro y liberar la cochera
             adentro.splice(index, 1);
             localStorage.setItem('autos_adentro', JSON.stringify(adentro));
 
             renderizarAdentro();
-            alert(`✅ Salida registrada. La cochera ${auto.cochera} volvió a quedar LIBRE.`);
+            alert(`✅ Salida anotada en el Sheet. La cochera ${auto.cochera} volvió a quedar LIBRE.`);
         }
 
-        // Inicializar contador al abrir
         actualizarContadorPendientes();
     </script>
 </body>
