@@ -44,8 +44,8 @@ header h1 { font-size: 0.95rem; }
 
 .btn-reset {
     background: transparent;
-    border: 1px solid var(--primary-red);
-    color: #fca5a5;
+    border: 1px solid var(--accent-blue);
+    color: #93c5fd;
     padding: 5px 10px;
     border-radius: 6px;
     font-size: 0.75rem;
