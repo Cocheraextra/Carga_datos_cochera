@@ -1,20 +1,17 @@
 /* ==========================================
-   LÓGICA GENERAL DE LA APLICACIÓN - VALET PARKING
+   LÓGICA GENERAL CONECTADA DIRECTO A GOOGLE SHEETS
    ================-------------------------- */
 
 let fotosCapturadas = [null, null, null, null, null, null];
 let slotActual = null;
 let streamCamara = null;
 
-// URL fija y definitiva de la API de Google Apps Script
+// URL definitiva y oficial de la API de Google Apps Script
 const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbznDeCl75wwt8I3ocqPh6TkrAd_-KiqPfpFEWWkWDMp1RfNUHUAzuKPs3q1LnWguT_t_Q/exec';
 
-// Limpieza automática de la memoria interna al actualizar el sistema
-if (localStorage.getItem('api_version_limpia') !== 'v4') {
-    localStorage.removeItem('autos_pendientes');
-    localStorage.removeItem('autos_adentro');
-    localStorage.setItem('api_version_limpia', 'v4');
-}
+// Listas globales obtenidas directamente desde Google Sheets en tiempo real
+let listaPendientesGlobal = [];
+let listaAdentroGlobal = [];
 
 // Mapa de cocheras oficial del hotel
 const colA = ['A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1'];
@@ -29,21 +26,53 @@ setInterval(() => {
     document.getElementById('relojVivo').innerText = `📅 ${ahora.toLocaleDateString('es-AR')}  |  🕒 ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
 }, 1000);
 
-function reiniciarApp() {
-    if (confirm("⚠️ ¿Deseas limpiar la memoria local del celular y reiniciar los datos temporales?")) {
-        localStorage.removeItem('autos_pendientes');
-        localStorage.removeItem('autos_adentro');
-        alert("🧹 Memoria limpia correctamente.");
-        location.reload();
+// Sincronizar datos al iniciar la app
+window.onload = function() {
+    actualizarDatos();
+};
+
+async function actualizarDatos() {
+    await obtenerPendientesDeSheet();
+    await obtenerAdentroDeSheet();
+}
+
+/* ==========================================
+   FUNCIONES DE LECTURA (GET) DESDE GOOGLE SHEETS
+   ================-------------------------- */
+async function obtenerPendientesDeSheet() {
+    try {
+        const respuesta = await fetch(`${WEBHOOK_URL}?accion=obtener_pendientes`);
+        listaPendientesGlobal = await respuesta.json();
+        actualizarContadorPendientes();
+        if (document.getElementById('tab-pendientes').classList.contains('active')) {
+            renderizarPendientes();
+            renderizarPlanoCocheras();
+        }
+    } catch (err) {
+        console.error("Error al leer pendientes:", err);
+    }
+}
+
+async function obtenerAdentroDeSheet() {
+    try {
+        const respuesta = await fetch(`${WEBHOOK_URL}?accion=obtener_adentro`);
+        listaAdentroGlobal = await respuesta.json();
+        if (document.getElementById('tab-pendientes').classList.contains('active')) {
+            renderizarPlanoCocheras();
+        }
+        if (document.getElementById('tab-adentro').classList.contains('active')) {
+            renderizarAdentro();
+        }
+    } catch (err) {
+        console.error("Error al leer adentro:", err);
     }
 }
 
 function actualizarContadorPendientes() {
-    const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
     const badge = document.getElementById('badgePendientes');
-    if (pendientes.length > 0) {
+    if (listaPendientesGlobal.length > 0) {
         badge.style.display = 'inline-block';
-        badge.innerText = pendientes.length;
+        badge.innerText = listaPendientesGlobal.length;
     } else {
         badge.style.display = 'none';
     }
@@ -54,6 +83,8 @@ function cambiarTab(tabName, element) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(`tab-${tabName}`).classList.add('active');
     element.classList.add('active');
+
+    actualizarDatos(); // Refresca automáticamente al cambiar de pestaña
 
     if (tabName === 'pendientes') {
         renderizarPendientes();
@@ -108,8 +139,11 @@ function capturarFoto() {
    ================-------------------------- */
 async function guardarIngreso(e) {
     e.preventDefault();
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.innerText = "Enviando a Google Sheets...";
+
     const ahora = new Date();
-    
     const idUnico = "ID-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
     const fechaHoraIngreso = `${ahora.toLocaleDateString('es-AR')} ${ahora.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}`;
 
@@ -124,10 +158,6 @@ async function guardarIngreso(e) {
         fotos: fotosCapturadas
     };
 
-    let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-    pendientes.push(nuevoAuto);
-    localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
-
     try {
         await fetch(WEBHOOK_URL, {
             method: 'POST',
@@ -135,19 +165,23 @@ async function guardarIngreso(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(nuevoAuto)
         });
+
+        document.getElementById('formIngreso').reset();
+        fotosCapturadas = [null, null, null, null, null, null];
+        const labels = ['Frente', 'Lat. Izq', 'Lat. Der', 'Atrás', 'Detalle 1', 'Detalle 2'];
+        for (let i = 0; i < 6; i++) {
+            document.getElementById(`slot-${i}`).innerHTML = `<span>📷 ${labels[i]}</span>`;
+        }
+
+        alert(`✅ Vehículo ${nuevoAuto.dominio} guardado en la Hoja Pendientes.`);
+        await obtenerPendientesDeSheet();
     } catch (err) {
-        console.error("Error al enviar a pendientes:", err);
+        console.error("Error al enviar ingreso:", err);
+        alert("Hubo un error al enviar los datos.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "⏳ ENVIAR A PENDIENTES";
     }
-
-    document.getElementById('formIngreso').reset();
-    fotosCapturadas = [null, null, null, null, null, null];
-    const labels = ['Frente', 'Lat. Izq', 'Lat. Der', 'Atrás', 'Detalle 1', 'Detalle 2'];
-    for (let i = 0; i < 6; i++) {
-        document.getElementById(`slot-${i}`).innerHTML = `<span>📷 ${labels[i]}</span>`;
-    }
-
-    actualizarContadorPendientes();
-    alert(`✅ Vehículo ${nuevoAuto.dominio} enviado a PENDIENTES.`);
 }
 
 /* ==========================================
@@ -155,14 +189,13 @@ async function guardarIngreso(e) {
    ================-------------------------- */
 function renderizarPendientes() {
     const contenedor = document.getElementById('listaPendientes');
-    const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
 
-    if (pendientes.length === 0) {
-        contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay autos esperando cochera.</div>';
+    if (listaPendientesGlobal.length === 0) {
+        contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay autos esperando cochera en Google Sheets.</div>';
         return;
     }
 
-    contenedor.innerHTML = pendientes.map(auto => `
+    contenedor.innerHTML = listaPendientesGlobal.map(auto => `
         <div class="car-item">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <h3 style="color:var(--accent-blue); font-size:1.3rem;">${auto.dominio}</h3>
@@ -180,9 +213,8 @@ function renderizarPendientes() {
 }
 
 function seleccionarCocheraPlano(codigo) {
-    const pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-    if (pendientes.length > 0) {
-        const input = document.getElementById(`input-cochera-${pendientes[0].idUnico}`);
+    if (listaPendientesGlobal.length > 0) {
+        const input = document.getElementById(`input-cochera-${listaPendientesGlobal[0].idUnico}`);
         if (input) input.value = codigo;
     }
 }
@@ -196,8 +228,7 @@ function crearCeldaCochera(codigo, ocupadas) {
 
 function renderizarPlanoCocheras() {
     const contenedor = document.getElementById('planoCocheras');
-    const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-    const ocupadas = adentro.map(a => a.cochera.toUpperCase());
+    const ocupadas = listaAdentroGlobal.map(a => a.cochera.toUpperCase());
 
     contenedor.innerHTML = `
         <div class="col-a">${colA.map(c => crearCeldaCochera(c, ocupadas)).join('')}</div>
@@ -219,25 +250,15 @@ async function confirmarCochera(idUnico) {
     const cochera = input.value.trim().toUpperCase();
     if (!cochera) return alert("Escribí o seleccioná una cochera.");
 
-    let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-    if (adentro.some(a => a.cochera.toUpperCase() === cochera)) {
+    if (listaAdentroGlobal.some(a => a.cochera.toUpperCase() === cochera)) {
         return alert(`⚠️ La cochera ${cochera} ya está ocupada.`);
     }
 
-    let pendientes = JSON.parse(localStorage.getItem('autos_pendientes') || '[]');
-    const index = pendientes.findIndex(a => a.idUnico === idUnico);
-    if (index === -1) return;
+    const auto = listaPendientesGlobal.find(a => a.idUnico === idUnico);
+    if (!auto) return;
 
-    const auto = pendientes[index];
     auto.cochera = cochera;
     auto.accion = "confirmar_cochera";
-
-    auto.foto1 = auto.fotos[0] || "";
-    auto.foto2 = auto.fotos[1] || "";
-    auto.foto3 = auto.fotos[2] || "";
-    auto.foto4 = auto.fotos[3] || "";
-    auto.foto5 = auto.fotos[4] || "";
-    auto.foto6 = auto.fotos[5] || "";
 
     try {
         await fetch(WEBHOOK_URL, {
@@ -246,20 +267,14 @@ async function confirmarCochera(idUnico) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(auto)
         });
+
+        alert(`🚀 Cochera ${cochera} asignada correctamente.`);
+        await actualizarDatos();
+        renderizarPendientes();
+        renderizarPlanoCocheras();
     } catch (err) {
         console.error("Error al confirmar cochera:", err);
     }
-
-    pendientes.splice(index, 1);
-    localStorage.setItem('autos_pendientes', JSON.stringify(pendientes));
-
-    adentro.unshift(auto);
-    localStorage.setItem('autos_adentro', JSON.stringify(adentro));
-
-    actualizarContadorPendientes();
-    renderizarPendientes();
-    renderizarPlanoCocheras();
-    alert(`🚀 Cochera ${cochera} asignada correctamente.`);
 }
 
 /* ==========================================
@@ -268,16 +283,15 @@ async function confirmarCochera(idUnico) {
 function renderizarAdentro() {
     const query = document.getElementById('buscarInput').value.toUpperCase().trim();
     const contenedor = document.getElementById('listaAdentro');
-    const adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
 
-    const filtrados = adentro.filter(a => 
+    const filtrados = listaAdentroGlobal.filter(a => 
         a.dominio.includes(query) || 
         a.cochera.includes(query) || 
         a.marcaModelo.toUpperCase().includes(query)
     );
 
     if (filtrados.length === 0) {
-        contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay vehículos estacionados con ese filtro.</div>';
+        contenedor.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No hay vehículos estacionados con ese filtro en Google Sheets.</div>';
         return;
     }
 
@@ -297,13 +311,10 @@ function renderizarAdentro() {
 }
 
 async function darDeBaja(idUnico) {
-    let adentro = JSON.parse(localStorage.getItem('autos_adentro') || '[]');
-    const index = adentro.findIndex(a => a.idUnico === idUnico);
-    if (index === -1) return;
+    const auto = listaAdentroGlobal.find(a => a.idUnico === idUnico);
+    if (!auto) return;
 
-    const auto = adentro[index];
     const valetSale = prompt(`Salida de ${auto.dominio} (Cochera ${auto.cochera}).\nIngresá el nombre del chofer que retira el vehículo:`);
-    
     if (!valetSale || valetSale.trim() === "") return;
 
     const ahora = new Date();
@@ -320,15 +331,11 @@ async function darDeBaja(idUnico) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(auto)
         });
+
+        alert(`✅ Salida registrada. La cochera ${auto.cochera} quedó libre.`);
+        await actualizarDatos();
+        renderizarAdentro();
     } catch (err) {
         console.error("Error al registrar salida:", err);
     }
-
-    adentro.splice(index, 1);
-    localStorage.setItem('autos_adentro', JSON.stringify(adentro));
-
-    renderizarAdentro();
-    alert(`✅ Salida registrada. La cochera ${auto.cochera} quedó libre.`);
 }
-
-actualizarContadorPendientes();
