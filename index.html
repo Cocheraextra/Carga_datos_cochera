@@ -11,7 +11,7 @@
     <header>
         <h1>🏨 Valet Parking Hotel</h1>
         <div class="header-btns">
-            <button class="btn-reset" onclick="reiniciarApp()">🧹 Limpiar Memoria</button>
+            <button class="btn-reset" onclick="actualizarDatos()">🔄 Sincronizar</button>
         </div>
     </header>
 
@@ -52,14 +52,14 @@
                 <input type="text" id="inputObservaciones" class="form-control" placeholder="Ej: Rayón en paragolpes, Habitación 204">
             </div>
 
-            <button type="submit" class="btn-submit">⏳ ENVIAR A PENDIENTES</button>
+            <button type="submit" class="btn-submit" id="btnEnviar">⏳ ENVIAR A PENDIENTES</button>
         </form>
     </main>
 
     <!-- PESTAÑA 2: PENDIENTES Y PLANO DE COCHERAS -->
     <main id="tab-pendientes" class="tab-content">
         <h2 class="section-title">AUTOS EN ESPERA DE COCHERA</h2>
-        <div id="listaPendientes"></div>
+        <div id="listaPendientes">Cargando desde Google Sheets...</div>
 
         <div class="card" style="margin-top: 20px;">
             <label style="font-size:0.85rem; font-weight:bold; color:var(--text-main); display:block;">PLANO DE COCHERAS</label>
@@ -79,7 +79,7 @@
                 <input type="text" id="buscarInput" class="form-control" placeholder="Buscar por patente, marca o cochera..." onkeyup="renderizarAdentro()">
             </div>
         </div>
-        <div id="listaAdentro"></div>
+        <div id="listaAdentro">Cargando desde Google Sheets...</div>
     </main>
 
     <!-- MODAL DE CÁMARA -->
